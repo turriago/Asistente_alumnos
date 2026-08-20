@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>QR de la clase</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Profesora · PC o celular</p>
+    <h1>QR de la prueba</h1>
+    <section class="panel">
+      <p id="state-pill" class="pill">Rotando</p>
+      <p id="warn" class="note warn hidden"></p>
+      <label for="class-code">Código de clase (el mismo en todos los aparatos)</label>
+      <input id="class-code" type="text" maxlength="32" autocomplete="off">
+      <label for="public-base">Enlace que debe abrir el celular</label>
+      <input id="public-base" type="url" autocomplete="off" placeholder="https://tu-sitio.netlify.app/">
+      <div class="qr-box"><canvas id="qr"></canvas></div>
+      <p class="muted">Este código caduca en <strong id="ttl">—</strong> s</p>
+      <p id="link" class="note"></p>
+      <p class="muted">Proyecta esta pantalla. El estudiante solo escanea con la cámara del iPhone o Android.</p>
+    </section>
+    <p><a class="btn secondary" href="index.html">Volver</a></p>
+  </div>
+  <script type="module" src="js/profe.js"></script>
+</body>
+</html>

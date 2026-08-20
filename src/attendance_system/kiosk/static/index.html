@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistema de asistencia</title>
+  <link rel="stylesheet" href="/static/kiosk.css?v=4">
+</head>
+<body>
+  <header class="top">
+    <p class="eyebrow">Prototipo académico · local</p>
+    <h1>Sistema de asistencia</h1>
+    <p id="demo-badge" class="badge hidden">DEMO_MODE</p>
+  </header>
+
+  <main class="layout">
+    <section class="camera-panel">
+      <h2>Cámara</h2>
+      <div class="video-wrap">
+        <img id="live" src="/stream.mjpeg" alt="Vídeo en vivo de la webcam">
+      </div>
+      <p id="meta" class="meta">Cargando…</p>
+    </section>
+
+    <aside class="card-panel">
+      <p id="state-pill" class="pill waiting">Esperando</p>
+      <h2 id="headline">Esperando un rostro</h2>
+      <div class="identity">
+        <img id="photo" class="photo hidden" alt="Miniatura del estudiante">
+        <div id="photo-fallback" class="photo fallback">?</div>
+        <div>
+          <p id="name" class="name">—</p>
+          <p id="sid" class="id-line">ID: —</p>
+          <p id="program" class="muted">—</p>
+          <p id="gesture" class="gesture">—</p>
+        </div>
+      </div>
+      <section class="next">
+        <h3>Siguiente paso</h3>
+        <p id="next-step"></p>
+        <p id="success-banner" class="success-banner hidden">Su prueba fue exitosa.</p>
+        <div class="actions">
+          <button id="start-test" type="button" disabled>Iniciar prueba</button>
+          <button id="reset-test" type="button" class="secondary hidden">Nueva prueba</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script src="/static/kiosk.js?v=4"></script>
+</body>
+</html>

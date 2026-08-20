@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.pem
+*.key
+
+# Databases and biometric data
+*.db
+*.sqlite
+*.sqlite3
+*.npy
+*.pkl
+*.pickle
+data/photos/
+data/enroll_inbox/**
+!data/enroll_inbox/README.md
+!data/enroll_inbox/.gitkeep
+data/embeddings/
+data/real/
+data/local/
+embeddings/
+
+# Real student lists and attendance exports
+*.xlsx
+*.xls
+*.csv
+!data/sample/*.sample.csv
+!data/sample/*.sample.xlsx
+
+# Pesos de modelos (YuNet, SFace, MiniFASNet). Se descargan en local.
+models/*.onnx
+models/*.pth
+models/*.pt
+models/*.task
+models/*.part
+!models/.gitkeep
+!models/README.md
+
+# Logs
+logs/
+*.log
+
+# IDE / OS
+.idea/
+.vscode/
+.vs/
+.cursor/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Netlify CLI
+.netlify/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OneDrive / Windows leftovers
+~$*

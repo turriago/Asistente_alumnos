@@ -1,0 +1,85 @@
+# Configuración del prototipo académico.
+# Los valores importantes no viven hardcodeados en el código.
+
+demo_mode: true
+
+camera:
+  index: 0
+  width: 1280
+  height: 720
+  fps: 30
+  # Media Foundation (msmf) es el que usa la app Cámara de Windows.
+  # dshow a veces abre la cámara IR de Windows Hello (imagen negra).
+  backend: msmf
+  reconnect_attempts: 3
+  reconnect_delay_seconds: 1.0
+  # Espejo tipo selfie. Más natural frente a la webcam.
+  mirror: true
+  # Si el índice 0 es la cámara IR de Windows Hello (imagen negra), busca otra.
+  auto_select: true
+  dark_mean_threshold: 45
+  warmup_frames: 12
+
+logging:
+  level: INFO
+  directory: logs
+  file: attendance.log
+
+face:
+  detector: yunet
+  model_path: models/face_detection_yunet_2023mar.onnx
+  # Confianza mínima para dibujar una caja. Calibrar en salón real.
+  score_threshold: 0.7
+  nms_threshold: 0.3
+  min_face_size: 40
+  draw_landmarks: true
+  auto_download: true
+  # Similitud coseno SFace. OpenCV sugiere ~0.36; 0.45 es más estricto (menos falsos positivos).
+  match_threshold: 0.45
+  # No recalcular SFace en cada frame; YuNet sí corre siempre. 0 = cada frame.
+  match_interval_ms: 120
+  # Tres tomas: frente, izquierda, derecha. Mejora el match si la persona no mira de frente.
+  enroll_poses:
+    - Frente
+    - Izquierda
+    - Derecha
+
+hands:
+  max_num_hands: 4
+  min_detection_confidence: 0.4
+  min_presence_confidence: 0.4
+  min_tracking_confidence: 0.5
+  model_path: models/hand_landmarker.task
+  auto_download: true
+  # 0 = cada frame. Si el FPS baja mucho, prueba 80.
+  detect_interval_ms: 0
+  finger_extend_ratio: 1.08
+  thumb_extend_ratio: 1.12
+  number_stable_ms: 400
+  # Solo manos de la cara más cercana. Palma grande = más cerca de la cámara.
+  max_dx_faces: 1.65
+  max_dy_below_faces: 2.3
+  max_dy_above_faces: 0.85
+  min_palm_to_face: 0.38
+  min_up_fingers: 2
+  min_hand_of_largest: 0.58
+  min_foreground_face: 0.9
+
+challenge:
+  # Tres números aleatorios seguidos. Cada uno distinto al anterior.
+  sequence_length: 3
+  timeout_seconds: 12
+  cooldown_seconds: 8
+  min_number: 1
+  max_number: 10
+
+database:
+  path: data/attendance.db
+  photos_dir: data/photos
+  # Aquí dejas 3 fotos por persona (frente, izquierda, derecha). Gitignored.
+  inbox_dir: data/enroll_inbox
+
+kiosk:
+  host: 127.0.0.1
+  port: 8080
+  jpeg_quality: 80

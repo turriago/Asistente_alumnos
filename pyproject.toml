@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "attendance-system"
+version = "0.1.0"
+description = "Prototipo académico de asistencia presencial con verificación de identidad y prueba de vivacidad."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "MIT" }
+dependencies = [
+    "opencv-contrib-python>=4.8,<5",
+    "numpy>=1.26,<3",
+    "PyYAML>=6.0",
+    "SQLAlchemy>=2.0,<3",
+    "Pillow>=10.0,<13",
+    "fastapi>=0.110,<1",
+    "uvicorn>=0.30,<1",
+    "mediapipe>=0.10.30,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "httpx>=0.27,<1",
+]
+
+[project.scripts]
+camera-demo = "attendance_system.camera.demo:main"
+face-demo = "attendance_system.face.demo:main"
+enroll-student = "attendance_system.students.enroll:main"
+enroll-from-photos = "attendance_system.students.enroll_files:main"
+create-demo-data = "attendance_system.students.seed:main"
+recognize-demo = "attendance_system.face.recognize:main"
+kiosk = "attendance_system.kiosk.app:main"
+hands-demo = "attendance_system.hands.demo:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+attendance_system = ["kiosk/static/*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"

@@ -1,0 +1,9 @@
+[build]
+  publish = "web"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Permissions-Policy = "camera=(self)"
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"

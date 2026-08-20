@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Prueba de asistencia</title>
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">Estudiante · celular</p>
+    <h1>Prueba de asistencia</h1>
+    <section class="panel">
+      <p id="pill" class="pill">Preparando</p>
+      <h2 id="headline">Abre la cámara</h2>
+      <div class="stage">
+        <video id="cam" playsinline autoplay muted></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <p id="number" class="big">—</p>
+      <p id="next" class="note">Espera el QR de la profesora o pulsa permitir cámara.</p>
+      <p id="success" class="success hidden">Su prueba fue exitosa.</p>
+      <div class="actions">
+        <button id="cam-btn" type="button">Permitir cámara</button>
+        <button id="start" type="button" disabled>Iniciar prueba</button>
+        <button id="again" type="button" class="secondary hidden">Nueva prueba</button>
+      </div>
+    </section>
+    <p><a class="btn secondary" href="index.html">Inicio</a></p>
+  </div>
+  <script>
+    if (!window.isSecureContext) {
+      document.getElementById("pill").textContent = "Sin https";
+      document.getElementById("pill").className = "pill bad";
+      document.getElementById("headline").textContent = "El celular bloquea la cámara";
+      document.getElementById("next").textContent =
+        "En el teléfono la cámara solo funciona con https (candado). Esta dirección http de la WiFi no basta. En el PC de la profesora el QR debe ser un enlace Netlify o un túnel https, no 192.168…";
+    }
+  </script>
+  <script type="module" src="js/prueba.js"></script>
+</body>
+</html>
