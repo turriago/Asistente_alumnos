@@ -36,6 +36,7 @@ recognize-demo = "attendance_system.face.recognize:main"
 kiosk = "attendance_system.kiosk.app:main"
 hands-demo = "attendance_system.hands.demo:main"
 publish-web-gallery = "attendance_system.gallery_sync:main"
+supabase-sync = "attendance_system.supabase_sync:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

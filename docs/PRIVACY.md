@@ -21,6 +21,6 @@ El software no sustituye el cumplimiento legal.
 - El vídeo MJPEG y el JSON de estado se quedan en el PC.
 - Miniaturas solo si el ID coincide con un archivo en `data/photos/`.
 - Sigue sin archivo de fotos originales ni asistencia.
-- El celular **no lee el disco del PC**. Si quieres ver esas miniaturas en el teléfono, el kiosco las envía a Netlify (función `gallery`, clave = código de clase). Eso no se sube a GitHub. Es un canal opcional del prototipo, no un archivo biométrico en la nube de la universidad.
+- El celular **no lee el disco del PC**. Si quieres ver esas miniaturas en el teléfono, el kiosco las envía a Netlify (función `gallery`, clave = código de clase) o a **Supabase Storage** (fotos/vídeos; Postgres solo metadatos). Eso no se sube a GitHub. Es un canal opcional del prototipo.
 
 Esto es un sistema de **verificación de identidad y prueba de vivacidad**, no un sistema infalible ni un archivo fotográfico.

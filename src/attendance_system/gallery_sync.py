@@ -22,6 +22,19 @@ logger = get_logger("gallery_sync")
 
 RUNTIME_DIR = PROJECT_ROOT / "web" / "runtime"
 RUNTIME_FILE = RUNTIME_DIR / "gallery.json"
+CARDS_FILE = RUNTIME_DIR / "supabase_cards.json"
+
+
+def load_card_urls() -> dict[str, str]:
+    if not CARDS_FILE.is_file():
+        return {}
+    try:
+        payload = json.loads(CARDS_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    if not isinstance(payload, dict):
+        return {}
+    return {str(key): str(value) for key, value in payload.items() if value}
 
 
 def thumbnail_data_url(path: Path) -> str | None:
@@ -58,10 +71,13 @@ def build_web_gallery(config: AppConfig) -> dict[str, Any]:
     )
     students: list[dict[str, str]] = []
     seen: set[str] = set()
+    cards = load_card_urls()
     for item in selected:
         if item.student_id in seen:
             continue
-        photo = thumbnail_data_url(config.database.photos_dir / f"{item.student_id}.jpg")
+        photo = cards.get(item.student_id) or thumbnail_data_url(
+            config.database.photos_dir / f"{item.student_id}.jpg"
+        )
         if not photo:
             continue
         seen.add(item.student_id)

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+VIDEO_SUFFIXES = {".mp4", ".mov", ".m4v", ".webm"}
 NAME_FILE = "nombre.txt"
 PRINCIPAL_STEMS = {"photo_principal", "foto_principal", "principal"}
 PRINCIPAL_PREFIX = re.compile(r"^1_", re.IGNORECASE)
@@ -78,6 +79,15 @@ def read_name_file(folder: Path) -> str | None:
         if name:
             return name
     return None
+
+
+def list_videos(folder: Path) -> tuple[Path, ...]:
+    files = [
+        path
+        for path in folder.iterdir()
+        if path.is_file() and path.suffix.lower() in VIDEO_SUFFIXES
+    ]
+    return tuple(sorted(files, key=lambda item: item.name.lower()))
 
 
 def list_photos(folder: Path) -> tuple[Path, ...]:

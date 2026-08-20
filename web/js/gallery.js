@@ -36,6 +36,7 @@ export async function prepareGallery(students) {
   for (const student of students) {
     if (!student || !student.photo) continue;
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.src = student.photo;
     try {
       await image.decode();
@@ -72,7 +73,45 @@ export function matchStudent(prepared, queryPrint) {
   return best.student;
 }
 
+async function fetchSupabaseGallery() {
+  try {
+    const config = await import("./supabase-public.js");
+    const url = String(config.SUPABASE_URL || "").replace(/\/$/, "");
+    const key = String(config.SUPABASE_ANON_KEY || "");
+    if (!url || !key) return [];
+    const query = new URL(url + "/rest/v1/students");
+    query.searchParams.set(
+      "select",
+      "student_id,full_name,program,group_name,student_media(kind,public_url,is_card)",
+    );
+    const response = await fetch(query, {
+      cache: "no-store",
+      headers: { apikey: key, Authorization: "Bearer " + key },
+    });
+    if (!response.ok) return [];
+    const rows = await response.json();
+    const students = [];
+    for (const row of rows || []) {
+      const media = row.student_media || [];
+      const card = media.find((item) => item.is_card) || media.find((item) => item.kind === "photo");
+      if (!card || !card.public_url) continue;
+      students.push({
+        id: row.student_id,
+        name: row.full_name,
+        program: row.program || "",
+        group: row.group_name || "",
+        photo: card.public_url,
+      });
+    }
+    return students;
+  } catch {
+    return [];
+  }
+}
+
 export async function fetchGallery(classCode) {
+  const fromSupabase = await fetchSupabaseGallery();
+  if (fromSupabase.length) return fromSupabase;
   const code = encodeURIComponent((classCode || "aula1").trim() || "aula1");
   const urls = [
     `/.netlify/functions/gallery?c=${code}`,

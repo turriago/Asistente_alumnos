@@ -57,3 +57,15 @@ def test_name_from_any_txt_and_1_prefix_beats_principal_stem(tmp_path: Path) -> 
     assert principal.name == "1_IMG_1534.JPG"
     ordered = ordered_enroll_photos(people[0].photos, principal)
     assert ordered[0].name == "1_IMG_1534.JPG"
+
+
+def test_list_videos(tmp_path: Path) -> None:
+    slot = tmp_path / "persona_01"
+    slot.mkdir()
+    (slot / "clip.mp4").write_bytes(b"x")
+    (slot / "foto.jpg").write_bytes(b"y")
+    from attendance_system.students.inbox import list_videos
+
+    videos = list_videos(slot)
+    assert len(videos) == 1
+    assert videos[0].name == "clip.mp4"
