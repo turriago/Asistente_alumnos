@@ -236,6 +236,7 @@ button.secondary, .btn.secondary {
   border-radius: 16px;
   padding: 1rem;
   margin: 0.8rem 0;
+  cursor: zoom-in;
 }
 
 .qr-box canvas, .qr-box img {
@@ -756,8 +757,34 @@ select {
   color: var(--wait);
 }
 
+.qr-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.7rem;
+  background: #0b1220;
+  padding: 1rem;
+}
+
+.qr-zoom canvas {
+  width: min(92vw, 86vh);
+  height: auto;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  padding: 14px;
+}
+
+body.qr-zoom-open {
+  overflow: hidden;
+}
+
 .qr-box.expired {
   position: relative;
+  cursor: default;
 }
 
 .qr-box.expired::after {

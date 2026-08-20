@@ -1,3 +1,5 @@
+import { clearQrLive } from "./qr-session.js";
+
 const SESSION_KEY = "profe-session";
 
 export function isProfessor() {
@@ -26,6 +28,7 @@ export function logoutProfessor() {
   } catch {
     /* modo privado */
   }
+  clearQrLive();
   location.replace("login.html");
 }
 

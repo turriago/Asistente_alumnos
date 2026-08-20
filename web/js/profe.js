@@ -10,6 +10,7 @@ import {
   isDayArchived,
   noonMs,
 } from "./attendance.js";
+import { clearQrLive, loadQrLive, saveQrLive } from "./qr-session.js";
 
 if (!requireProfessor()) throw new Error("login");
 
@@ -29,6 +30,10 @@ const countdownEl = document.getElementById("qr-countdown");
 const activatedAtEl = document.getElementById("activated-at");
 const expiredNote = document.getElementById("expired-note");
 const clockEl = document.getElementById("colombia-clock");
+const qrZoom = document.getElementById("qr-zoom");
+const zoomCanvas = document.getElementById("qr-zoom-canvas");
+const qrZoomCount = document.getElementById("qr-zoom-count");
+const qrZoomClose = document.getElementById("qr-zoom-close");
 const DEFAULT_CODE = "aula1";
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
@@ -42,6 +47,7 @@ if (publicBase.value.startsWith("http://") && !/127\.0\.0\.1|localhost/i.test(pu
 let lastWindow = -1;
 let lastCode = "";
 let lastBase = "";
+let lastUrl = "";
 let lanBase = "";
 let session = null;
 let active = false;
@@ -95,12 +101,70 @@ function showTimes() {
   }
 }
 
+function persistLive() {
+  if (!active || !expiresAt) return;
+  saveQrLive({
+    classCode: (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE,
+    publicBase: publicBase.value.trim(),
+    activatedAt: (activatedAt || new Date()).toISOString(),
+    expiresAt,
+    session,
+  });
+}
+
+function applyLiveUi() {
+  qrLive.classList.remove("hidden");
+  qrBox.classList.remove("expired");
+  expiredNote.classList.add("hidden");
+  statePill.textContent = "QR activo";
+  statePill.className = "pill ok";
+  activateBtn.disabled = true;
+  activateBtn.textContent = "QR activo";
+  showTimes();
+}
+
+function zoomSize() {
+  return Math.max(280, Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.82));
+}
+
+function isZoomOpen() {
+  return Boolean(qrZoom) && !qrZoom.classList.contains("hidden");
+}
+
+async function drawQr(url) {
+  lastUrl = url;
+  await QRCode.toCanvas(canvas, url, { width: 320, margin: 1 });
+  if (isZoomOpen() && zoomCanvas) {
+    await QRCode.toCanvas(zoomCanvas, url, { width: zoomSize(), margin: 1 });
+  }
+  link.textContent = url;
+}
+
+async function openQrZoom() {
+  if (!active || !qrZoom) return;
+  qrZoom.classList.remove("hidden");
+  document.body.classList.add("qr-zoom-open");
+  if (qrZoomCount) qrZoomCount.textContent = countdownEl.textContent;
+  if (lastUrl && zoomCanvas) {
+    await QRCode.toCanvas(zoomCanvas, lastUrl, { width: zoomSize(), margin: 1 });
+  }
+}
+
+function closeQrZoom() {
+  if (!qrZoom) return;
+  qrZoom.classList.add("hidden");
+  document.body.classList.remove("qr-zoom-open");
+}
+
 function deactivate(reason) {
   active = false;
+  clearQrLive();
+  closeQrZoom();
   qrBox.classList.add("expired");
   expiredNote.classList.remove("hidden");
   expiredNote.textContent = reason || "El tiempo se acabó. El QR ya no sirve. Actívalo otra vez si quieres más minutos.";
   countdownEl.textContent = "Tiempo agotado · 0:00";
+  if (qrZoomCount) qrZoomCount.textContent = countdownEl.textContent;
   statePill.textContent = "QR cerrado";
   statePill.className = "pill bad";
   activateBtn.disabled = false;
@@ -154,10 +218,14 @@ async function render() {
   localStorage.setItem("classCode", code);
   localStorage.setItem("publicBase", publicBase.value.trim());
   localStorage.setItem("qrMinutes", String(minutes()));
-  countdownEl.textContent = "El QR se apaga en " + remainLabel(expiresAt - Date.now());
+  const remainText = "El QR se apaga en " + remainLabel(expiresAt - Date.now());
+  countdownEl.textContent = remainText;
+  if (qrZoomCount) qrZoomCount.textContent = remainText;
+  persistLive();
   if (!session || session.class_code !== code) {
     const ok = await activateToday();
     if (!ok) return;
+    persistLive();
   }
   const w = windowIndex();
   const base = studentBase();
@@ -168,8 +236,7 @@ async function render() {
   lastBase = base;
   const token = await currentToken(code);
   const url = studentUrl(base, code, token, session && session.session_date, expiresAt);
-  await QRCode.toCanvas(canvas, url, { width: 320, margin: 1 });
-  link.textContent = url;
+  await drawQr(url);
 }
 
 activateBtn.addEventListener("click", async () => {
@@ -192,16 +259,29 @@ activateBtn.addEventListener("click", async () => {
   activatedAt = new Date();
   expiresAt = Math.min(Date.now() + minutes() * 60 * 1000, noonMs(colombiaToday()));
   active = true;
-  qrLive.classList.remove("hidden");
-  qrBox.classList.remove("expired");
-  expiredNote.classList.add("hidden");
-  statePill.textContent = "QR activo";
-  statePill.className = "pill ok";
-  activateBtn.textContent = "QR activo";
-  showTimes();
+  applyLiveUi();
+  persistLive();
   lastWindow = -1;
   await render();
 });
+
+async function restoreLive() {
+  const saved = loadQrLive();
+  if (!saved) return;
+  if (isDayArchived(saved.session && saved.session.session_date)) {
+    clearQrLive();
+    return;
+  }
+  if (saved.classCode) input.value = saved.classCode;
+  if (typeof saved.publicBase === "string") publicBase.value = saved.publicBase;
+  activatedAt = saved.activatedAt ? new Date(saved.activatedAt) : new Date();
+  expiresAt = Number(saved.expiresAt);
+  session = saved.session || null;
+  active = true;
+  applyLiveUi();
+  lastWindow = -1;
+  await render();
+}
 
 minutesInput.addEventListener("change", () => {
   localStorage.setItem("qrMinutes", String(minutes()));
@@ -216,6 +296,24 @@ publicBase.addEventListener("input", () => {
   if (active) render();
 });
 
+qrBox.addEventListener("click", () => {
+  if (active) openQrZoom();
+});
+qrZoom?.addEventListener("click", (event) => {
+  if (event.target === qrZoom || event.target === zoomCanvas) closeQrZoom();
+});
+qrZoomClose?.addEventListener("click", (event) => {
+  event.stopPropagation();
+  closeQrZoom();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeQrZoom();
+});
+window.addEventListener("resize", () => {
+  if (isZoomOpen() && lastUrl) openQrZoom();
+});
+
 await detectLan();
+await restoreLive();
 setInterval(render, 250);
 document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());

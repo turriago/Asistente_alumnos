@@ -11,6 +11,7 @@ import {
 } from "./attendance.js";
 import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
 import { logoutProfessor, requireProfessor } from "./auth.js";
+import { isQrRunning } from "./qr-session.js";
 
 if (!requireProfessor()) throw new Error("login");
 
@@ -40,6 +41,7 @@ const zoomImg = document.getElementById("photo-zoom-img");
 const zoomName = document.getElementById("photo-zoom-name");
 const zoomClose = document.getElementById("photo-zoom-close");
 const clockEl = document.getElementById("colombia-clock");
+const qrLinks = document.querySelectorAll(".qr-nav");
 const archiveBanner = document.getElementById("archive-banner");
 const presentHeading = document.getElementById("present-heading");
 const missingHeading = document.getElementById("missing-heading");
@@ -308,8 +310,16 @@ input.addEventListener("change", () => {
 });
 sessionSelect.addEventListener("change", load);
 refreshBtn.addEventListener("click", load);
+function refreshQrLink() {
+  const label = isQrRunning() ? "Volver al QR en curso" : "Activar QR";
+  qrLinks.forEach((el) => {
+    el.textContent = label;
+  });
+}
+
 function tickClock() {
   if (clockEl) clockEl.textContent = "Hora Colombia: " + formatColombiaClock();
+  refreshQrLink();
   const closed = currentSession && isDayArchived(currentSession.session_date);
   if (closed && !dayArchived) load();
 }
