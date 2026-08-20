@@ -26,6 +26,122 @@ html, body {
   padding: 1.2rem 1.1rem 2.4rem;
 }
 
+.top {
+  padding: 1.2rem 2rem 0.4rem;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr);
+  gap: 1.25rem;
+  padding: 1rem 2rem 2rem;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .top { padding: 1.2rem 1.1rem 0.4rem; }
+  .layout { padding: 1rem 1.1rem 2rem; }
+}
+
+.camera-panel, .card-panel {
+  background: var(--panel);
+  border-radius: 18px;
+  padding: 1.1rem 1.2rem 1.3rem;
+}
+
+.camera-panel h2, .card-panel h2, .card-panel h3 { margin: 0 0 0.8rem; }
+
+.video-wrap {
+  background: #05080f;
+  border-radius: 12px;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+}
+
+.identity {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #0b1220;
+}
+
+.photo.fallback {
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+  color: var(--muted);
+  border: 1px solid #2a3650;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.55rem;
+  font-weight: 700;
+}
+
+.id-line { margin: 0.25rem 0; font-size: 1.1rem; }
+
+.card-panel.identified .id-line::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 3px;
+  margin-top: 0.45rem;
+  background: var(--ok);
+  border-radius: 99px;
+}
+
+.gesture {
+  margin: 0.55rem 0 0;
+  font-size: 3.2rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--ok);
+}
+
+.next {
+  margin-top: 1.4rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2a3650;
+}
+
+.next p {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.45;
+}
+
+.success-banner {
+  margin: 0.9rem 0 0 !important;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  background: #14362c;
+  color: var(--ok);
+  font-size: 1.25rem !important;
+  font-weight: 700;
+}
+
+.meta {
+  margin: 0.7rem 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.footer-link {
+  padding: 0 2rem 2rem;
+}
+
+.pill.waiting { background: #3d3420; color: var(--wait); }
+.pill.ok, .pill.identified { background: #14362c; color: var(--ok); }
+
 .eyebrow {
   margin: 0;
   letter-spacing: 0.12em;

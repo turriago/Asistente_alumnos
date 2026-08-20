@@ -14,6 +14,12 @@ const success = document.getElementById("success");
 const video = document.getElementById("cam");
 const overlay = document.getElementById("overlay");
 const placeholder = document.getElementById("cam-placeholder");
+const photo = document.getElementById("photo");
+const fallback = document.getElementById("photo-fallback");
+const nameEl = document.getElementById("name");
+const sidEl = document.getElementById("sid");
+const programEl = document.getElementById("program");
+const card = document.getElementById("card");
 const ctx = overlay.getContext("2d", { alpha: true });
 
 const params = new URLSearchParams(location.search);
@@ -25,9 +31,53 @@ const smoother = new NumberSmoother(400);
 
 let facesTracker = null;
 let handsTracker = null;
+let lastSnap = 0;
 let lastVideoTime = -1;
 let hasFace = false;
 let running = true;
+
+function showCard(hasPerson) {
+  if (!hasPerson) {
+    photo.classList.add("hidden");
+    fallback.classList.remove("hidden");
+    fallback.textContent = "?";
+    nameEl.textContent = "—";
+    sidEl.textContent = "ID: —";
+    programEl.textContent = "";
+    card.classList.remove("identified");
+    return;
+  }
+  nameEl.textContent = "Estudiante";
+  sidEl.textContent = "ID: sesión web";
+  programEl.textContent = "Prueba desde el celular";
+  card.classList.add("identified");
+}
+
+function snapFace(box) {
+  const now = performance.now();
+  if (now - lastSnap < 800 || !video.videoWidth) return;
+  lastSnap = now;
+  const snap = document.createElement("canvas");
+  const size = 128;
+  snap.width = size;
+  snap.height = size;
+  const sctx = snap.getContext("2d");
+  let sx = 0;
+  let sy = 0;
+  let sw = video.videoWidth;
+  let sh = video.videoHeight;
+  if (box) {
+    const pad = Math.max(box.width, box.height) * 0.25;
+    sx = Math.max(0, box.originX - pad);
+    sy = Math.max(0, box.originY - pad);
+    sw = Math.min(video.videoWidth - sx, box.width + pad * 2);
+    sh = Math.min(video.videoHeight - sy, box.height + pad * 2);
+  }
+  sctx.drawImage(video, sx, sy, sw, sh, 0, 0, size, size);
+  photo.src = snap.toDataURL("image/jpeg", 0.85);
+  photo.classList.remove("hidden");
+  fallback.classList.add("hidden");
+}
 
 function setPill(text, kind) {
   pill.textContent = text;
@@ -121,15 +171,17 @@ function tick() {
     video.pause();
     setPill("Prueba OK", "ok");
     headline.textContent = "Su prueba fue exitosa.";
-    next.textContent = view.message;
-    numberEl.textContent = "✓";
+    next.textContent = "Su prueba fue exitosa.";
+    numberEl.textContent = "—";
+    numberEl.classList.add("hidden");
     success.classList.remove("hidden");
     startBtn.disabled = true;
     againBtn.classList.remove("hidden");
+    camBtn.classList.add("hidden");
     return;
   }
   if (view.state === "failed") {
-    setPill("Falló", "bad");
+    setPill("Reto fallido", "bad");
     headline.textContent = "Reto fallido";
     next.textContent = view.message;
     startBtn.disabled = true;
@@ -139,15 +191,19 @@ function tick() {
     headline.textContent = view.target != null ? `Muestra ${view.target}` : "Baja las manos";
     next.textContent = view.message;
     numberEl.textContent = view.target != null ? String(view.target) : String(gesture ?? "—");
+    numberEl.classList.remove("hidden");
     startBtn.disabled = true;
   } else {
-    setPill(hasFace ? "Rostro listo" : "Esperando", hasFace ? "ok" : "");
-    headline.textContent = hasFace ? "Rostro detectado" : "Pon la cara frente a la cámara";
+    setPill(hasFace ? "Identificado" : "Esperando", hasFace ? "ok" : "waiting");
+    headline.textContent = hasFace ? "Estudiante detectado" : "Esperando un rostro";
     next.textContent = hasFace
       ? "Pulsa Iniciar prueba para los 3 números aleatorios."
-      : "Ilumina tu cara. No hace falta acercarte al kiosco de la profesora.";
+      : "Pulsa Permitir cámara y ponte frente al teléfono.";
     numberEl.textContent = gesture != null ? String(gesture) : "—";
     startBtn.disabled = !hasFace;
+    showCard(hasFace);
+    numberEl.classList.toggle("hidden", gesture == null);
+    if (hasFace) snapFace(detections[0] && detections[0].boundingBox);
   }
   requestAnimationFrame(tick);
 }
@@ -169,6 +225,7 @@ againBtn.addEventListener("click", () => {
   success.classList.add("hidden");
   startBtn.disabled = !hasFace;
   againBtn.classList.add("hidden");
+  showCard(hasFace);
   if (video.paused) video.play();
   running = true;
   lastVideoTime = -1;

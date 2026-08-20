@@ -3,39 +3,61 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Prueba de asistencia</title>
+  <title>Sistema de asistencia</title>
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
-  <div class="wrap">
-    <p class="eyebrow">Estudiante · celular</p>
-    <h1>Prueba de asistencia</h1>
-    <section class="panel">
-      <p id="pill" class="pill">Preparando</p>
-      <h2 id="headline">Abre la cámara</h2>
-      <div class="stage">
+  <header class="top">
+    <p class="eyebrow">Prototipo académico · web</p>
+    <h1>Sistema de asistencia</h1>
+  </header>
+
+  <main class="layout">
+    <section class="camera-panel">
+      <h2>Cámara</h2>
+      <div class="stage video-wrap">
         <video id="cam" playsinline autoplay muted></video>
         <canvas id="overlay"></canvas>
-        <p id="cam-placeholder" class="cam-placeholder">Pulsa el botón azul <strong>Permitir cámara</strong> y acepta el aviso del navegador. Hasta entonces este recuadro se ve negro.</p>
+        <p id="cam-placeholder" class="cam-placeholder">Pulsa <strong>Permitir cámara</strong> y acepta el aviso del navegador.</p>
       </div>
-      <p id="number" class="big">—</p>
-      <p id="next" class="note">Espera el QR de la profesora o pulsa permitir cámara.</p>
-      <p id="success" class="success hidden">Su prueba fue exitosa.</p>
-      <div class="actions">
-        <button id="cam-btn" type="button">Permitir cámara</button>
-        <button id="start" type="button" disabled>Iniciar prueba</button>
-        <button id="again" type="button" class="secondary hidden">Nueva prueba</button>
-      </div>
+      <p id="meta" class="meta">La ficha de la derecha es la misma vista que en el kiosco del PC.</p>
     </section>
-    <p><a class="btn secondary" href="index.html">Inicio</a></p>
-  </div>
+
+    <aside class="card-panel" id="card">
+      <p id="pill" class="pill waiting">Esperando</p>
+      <h2 id="headline">Esperando un rostro</h2>
+      <div class="identity">
+        <img id="photo" class="photo hidden" alt="Miniatura del estudiante">
+        <div id="photo-fallback" class="photo fallback">?</div>
+        <div>
+          <p id="name" class="name">—</p>
+          <p id="sid" class="id-line">ID: —</p>
+          <p id="program" class="muted"></p>
+          <p id="number" class="gesture hidden">—</p>
+        </div>
+      </div>
+      <section class="next">
+        <h3>Siguiente paso</h3>
+        <p id="next"></p>
+        <p id="success" class="success-banner hidden">Su prueba fue exitosa.</p>
+        <div class="actions">
+          <button id="cam-btn" type="button">Permitir cámara</button>
+          <button id="start" type="button" disabled>Iniciar prueba</button>
+          <button id="again" type="button" class="secondary hidden">Nueva prueba</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <p class="footer-link"><a class="btn secondary" href="index.html">Inicio</a></p>
+
   <script>
     if (!window.isSecureContext) {
       document.getElementById("pill").textContent = "Sin https";
       document.getElementById("pill").className = "pill bad";
       document.getElementById("headline").textContent = "El celular bloquea la cámara";
       document.getElementById("next").textContent =
-        "En el teléfono la cámara solo funciona con https (candado). Esta dirección http de la WiFi no basta. En el PC de la profesora el QR debe ser un enlace Netlify o un túnel https, no 192.168…";
+        "En el teléfono la cámara solo funciona con https. Usa el sitio de Netlify, no la IP de la WiFi.";
     }
   </script>
   <script type="module" src="js/prueba.js"></script>
