@@ -4,6 +4,7 @@ import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
 import { fetchGallery, prepareGallery } from "./gallery.js?v=11";
 import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=11";
+import { recordPass } from "./attendance.js";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -27,6 +28,7 @@ const ctx = overlay.getContext("2d", { alpha: true });
 const params = new URLSearchParams(location.search);
 const classCode = params.get("c") || "";
 const token = params.get("t") || "";
+const sessionDate = params.get("d") || "";
 const demo = params.get("demo") === "1";
 const challenge = new Challenge();
 const smoother = new NumberSmoother(400);
@@ -44,6 +46,7 @@ let recognizeTimer = 0;
 let missedMatches = 0;
 let trackersPromise = null;
 let faceApiPromise = null;
+let attendanceSent = false;
 
 function preloadModels() {
   if (!trackersPromise) trackersPromise = createTrackers();
@@ -220,6 +223,18 @@ function tick() {
   if (view.state === "success") {
     running = false;
     video.pause();
+    if (!attendanceSent && matched && matched.id) {
+      attendanceSent = true;
+      recordPass({
+        id: matched.id,
+        name: matched.name,
+        classCode: classCode || "aula1",
+        sessionDate,
+        source: "web",
+      }).catch(() => {
+        attendanceSent = false;
+      });
+    }
     setPill("Prueba OK", "ok");
     headline.textContent = "Su prueba fue exitosa.";
     next.textContent = "Su prueba fue exitosa.";
@@ -283,6 +298,7 @@ camBtn.addEventListener("click", () => {
 againBtn.addEventListener("click", () => {
   challenge.reset();
   smoother.reset();
+  attendanceSent = false;
   success.classList.add("hidden");
   startBtn.disabled = !hasFace;
   againBtn.classList.add("hidden");

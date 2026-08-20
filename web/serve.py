@@ -56,7 +56,8 @@ class Handler(SimpleHTTPRequestHandler):
 def main() -> None:
     ips = lan_ips()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
-    print(f"En este PC:    http://127.0.0.1:{PORT}/profe.html")
+    print(f"En este PC:    http://127.0.0.1:{PORT}/listado.html")
+    print(f"QR de clase:   http://127.0.0.1:{PORT}/profe.html")
     for ip in ips:
         print(f"En el celular: http://{ip}:{PORT}/profe.html")
         print("  (misma WiFi; si no entra, permite Python en el firewall de Windows)")

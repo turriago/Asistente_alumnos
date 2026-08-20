@@ -477,3 +477,148 @@ body.page-prueba {
     max-height: 54dvh;
   }
 }
+
+.wrap.roster {
+  max-width: 1080px;
+}
+
+.roster-toolbar {
+  margin-top: 1rem;
+}
+
+.toolbar-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.toolbar-row button {
+  min-width: 8.5rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.stat {
+  background: var(--panel);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  border: 1px solid #2a3650;
+}
+
+.stat.ok { border-color: #1f5c48; }
+.stat.wait { border-color: #5a4a22; }
+
+.stat-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stat-value {
+  margin: 0.25rem 0 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.stat.ok .stat-value { color: var(--ok); }
+.stat.wait .stat-value { color: var(--wait); }
+
+.roster-summary {
+  margin: 0.9rem 0 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.roster-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.roster-col h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.2rem;
+}
+
+.person-list {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.person-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.55rem;
+  border-radius: 12px;
+  background: #0b1220;
+  border: 1px solid #2a3650;
+}
+
+.person-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #141c2e;
+}
+
+.person-photo.fallback {
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--muted);
+  border: 1px solid #2a3650;
+}
+
+.person-name {
+  margin: 0;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.person-meta {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.roster-nav {
+  margin-top: 1.2rem;
+}
+
+.roster-session {
+  margin: 0.85rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.export-actions {
+  margin-top: 1rem;
+}
+
+select {
+  width: 100%;
+  border: 1px solid #2a3650;
+  background: #0b1220;
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 800px) {
+  .roster-grid,
+  .stats,
+  .toolbar-row {
+    grid-template-columns: 1fr;
+  }
+}

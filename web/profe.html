@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR de la clase</title>
-  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/app.css?v=13">
 </head>
 <body>
   <div class="wrap">
@@ -20,11 +20,15 @@
       <div class="qr-box"><canvas id="qr"></canvas></div>
       <p class="muted">Este código caduca en <strong id="ttl">—</strong> s</p>
       <p id="link" class="note"></p>
+      <p id="session-meta" class="roster-session">Activando la clase de hoy…</p>
       <p class="muted">Proyecta esta pantalla. El estudiante solo escanea con la cámara del iPhone o Android.</p>
       <p class="muted">Las fotos de la ficha salen del kiosco del PC. Ábrelo en este equipo y pulsa <strong>Enviar fotos al celular</strong>.</p>
     </section>
-    <p><a class="btn secondary" href="index.html">Volver</a></p>
+    <p class="actions">
+      <a class="btn" href="listado.html">Ver asistencia del día</a>
+      <a class="btn secondary" href="index.html">Volver</a>
+    </p>
   </div>
-  <script type="module" src="js/profe.js"></script>
+  <script type="module" src="js/profe.js?v=13"></script>
 </body>
 </html>

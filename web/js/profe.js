@@ -1,5 +1,6 @@
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 import { currentToken, remainingMs, studentUrl, windowIndex } from "./token.js";
+import { ensureSession, formatColombiaDate, formatColombiaTime } from "./attendance.js";
 
 const input = document.getElementById("class-code");
 const publicBase = document.getElementById("public-base");
@@ -7,6 +8,8 @@ const canvas = document.getElementById("qr");
 const ttl = document.getElementById("ttl");
 const link = document.getElementById("link");
 const warn = document.getElementById("warn");
+const sessionMeta = document.getElementById("session-meta");
+const statePill = document.getElementById("state-pill");
 const DEFAULT_CODE = "aula1";
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
@@ -20,6 +23,7 @@ let lastWindow = -1;
 let lastCode = "";
 let lastBase = "";
 let lanBase = "";
+let session = null;
 
 function isLoopback(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
@@ -36,15 +40,37 @@ function studentBase() {
   return pageBase();
 }
 
+function showSession() {
+  if (!session) {
+    sessionMeta.textContent = "No se pudo guardar la fecha de hoy. Revisa la conexión.";
+    return;
+  }
+  sessionMeta.textContent =
+    formatColombiaDate(session.session_date) +
+    " · QR activado a las " +
+    formatColombiaTime(session.started_at);
+}
+
+async function activateToday() {
+  const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
+  try {
+    session = await ensureSession(code);
+    statePill.textContent = "Clase abierta";
+    statePill.className = "pill ok";
+    showSession();
+  } catch {
+    session = null;
+    statePill.textContent = "Sin sesión";
+    statePill.className = "pill bad";
+    sessionMeta.textContent = "No se pudo activar la clase de hoy.";
+  }
+}
+
 async function detectLan() {
   if (!isLoopback(window.location.hostname)) return;
   try {
     const response = await fetch("lan.json", { cache: "no-store" });
     if (!response.ok) return;
-    const data = await response.json();
-    const ip = (data.ips || [])[0];
-    const port = data.port || window.location.port || "8787";
-    if (!ip) return;
     warn.classList.remove("hidden");
     warn.textContent =
       "El celular ya puede abrir la página por WiFi, pero la cámara del teléfono NO funciona en http. Sube la carpeta web a Netlify (https) y pega esa URL abajo. En el PC sí funciona porque 127.0.0.1 cuenta como seguro.";
@@ -60,6 +86,9 @@ async function render() {
   const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
   localStorage.setItem("classCode", code);
   localStorage.setItem("publicBase", publicBase.value.trim());
+  if (!session || session.class_code !== code) {
+    await activateToday();
+  }
   const w = windowIndex();
   const base = studentBase();
   ttl.textContent = String(Math.ceil(remainingMs() / 1000));
@@ -68,13 +97,14 @@ async function render() {
   lastCode = code;
   lastBase = base;
   const token = await currentToken(code);
-  const url = studentUrl(base, code, token);
+  const url = studentUrl(base, code, token, session && session.session_date);
   await QRCode.toCanvas(canvas, url, { width: 320, margin: 1 });
   link.textContent = url;
 }
 
 input.addEventListener("input", () => {
   lastWindow = -1;
+  session = null;
   render();
 });
 publicBase.addEventListener("input", () => {
@@ -83,5 +113,6 @@ publicBase.addEventListener("input", () => {
 });
 
 await detectLan();
+await activateToday();
 render();
 setInterval(render, 250);

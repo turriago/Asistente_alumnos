@@ -8,6 +8,7 @@ import time
 import cv2
 import numpy as np
 
+from attendance_system.attendance import record_pass
 from attendance_system.camera.capture import CameraUnavailableError, FpsMeter, open_preferred_camera
 from attendance_system.camera.quality import assess_frame, enhance_if_dark, maybe_mirror
 from attendance_system.challenge.manager import ChallengeManager
@@ -73,6 +74,7 @@ class KioskEngine:
         self._challenge = ChallengeManager(config.challenge)
         self._paused = False
         self._ready_student_id: str | None = None
+        self._attendance_logged: set[str] = set()
         self._status = build_status(
             faces=[],
             matcher=FaceMatcher([], config.face.match_threshold),
@@ -132,6 +134,12 @@ class KioskEngine:
             logger.info("Galería web: %s", result.get("message"))
         except Exception as exc:
             logger.warning("No se pudo publicar la galería web: %s", exc)
+
+    def _record_attendance(self, student_id: str, full_name: str) -> None:
+        try:
+            record_pass(self.config, student_id=student_id, full_name=full_name, source="kiosk")
+        except Exception as exc:
+            logger.warning("No se pudo registrar asistencia: %s", exc)
 
     def _publish(self, frame: np.ndarray, status: KioskStatus) -> None:
         jpeg = encode_jpeg(frame, self.config.kiosk.jpeg_quality)
@@ -301,6 +309,16 @@ class KioskEngine:
                         )
                         if challenge_view.state == "success":
                             self._paused = True
+                            sid = challenge_view.student_id
+                            if sid and sid not in self._attendance_logged:
+                                self._attendance_logged.add(sid)
+                                name = (result.full_name if result and result.full_name else "") or ""
+                                threading.Thread(
+                                    target=self._record_attendance,
+                                    args=(sid, name),
+                                    daemon=True,
+                                    name="attendance-post",
+                                ).start()
                     fps = fps_meter.tick()
                     identified = result.identified if result is not None else None
                     labels = [""] * len(faces)

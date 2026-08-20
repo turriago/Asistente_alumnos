@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Listado de asistencia</title>
+  <link rel="stylesheet" href="css/app.css?v=13">
+</head>
+<body class="page-listado">
+  <div class="wrap roster">
+    <p class="eyebrow">Profesora · una clase por semana</p>
+    <h1>Asistencia del día</h1>
+    <p class="muted">Cada vez que activas el QR se abre el día: fecha, hora, quiénes fueron y quiénes faltaron. Puedes bajar el Excel o compartirlo.</p>
+
+    <section class="panel roster-toolbar">
+      <p id="live-pill" class="pill">En vivo</p>
+      <label for="class-code">Código de clase</label>
+      <div class="toolbar-row">
+        <input id="class-code" type="text" maxlength="32" autocomplete="off" aria-label="Código de clase">
+        <button id="refresh" type="button" class="secondary">Actualizar</button>
+      </div>
+      <label for="session-date">Día de clase</label>
+      <select id="session-date"></select>
+      <p id="session-meta" class="roster-session">Cargando…</p>
+      <p id="status" class="muted"></p>
+    </section>
+
+    <section id="stats" class="stats" hidden>
+      <article class="stat ok">
+        <p class="stat-label">Fueron</p>
+        <p id="count-present" class="stat-value">0</p>
+      </article>
+      <article class="stat wait">
+        <p class="stat-label">No fueron</p>
+        <p id="count-missing" class="stat-value">0</p>
+      </article>
+      <article class="stat">
+        <p class="stat-label">En lista</p>
+        <p id="count-total" class="stat-value">0</p>
+      </article>
+    </section>
+    <p id="summary" class="roster-summary" hidden></p>
+
+    <p class="actions export-actions">
+      <button id="download-day" type="button">Descargar Excel del día</button>
+      <button id="share-day" type="button" class="secondary">Compartir Excel</button>
+      <button id="download-university" type="button" class="secondary">Plantilla universidad</button>
+    </p>
+
+    <div class="roster-grid">
+      <section class="panel roster-col">
+        <h2>Presentes</h2>
+        <p id="present-empty" class="muted">Aún nadie ha pasado la prueba.</p>
+        <div id="present-list" class="person-list"></div>
+      </section>
+      <section class="panel roster-col">
+        <h2>No asistieron</h2>
+        <p id="missing-empty" class="muted">Nadie pendiente.</p>
+        <div id="missing-list" class="person-list"></div>
+      </section>
+    </div>
+
+    <p class="actions roster-nav">
+      <a class="btn" href="profe.html">Activar QR de hoy</a>
+      <a class="btn secondary" href="index.html">Volver</a>
+    </p>
+  </div>
+  <script type="module" src="js/listado.js?v=13"></script>
+</body>
+</html>

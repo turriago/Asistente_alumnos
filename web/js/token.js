@@ -31,10 +31,11 @@ export async function tokenIsValid(classCode, token, now = Date.now()) {
   return token === current || token === previous;
 }
 
-export function studentUrl(origin, classCode, token) {
+export function studentUrl(origin, classCode, token, sessionDate) {
   const base = origin.endsWith("/") ? origin : `${origin}/`;
   const url = new URL("prueba.html", base);
   url.searchParams.set("c", String(classCode).trim());
   url.searchParams.set("t", token);
+  if (sessionDate) url.searchParams.set("d", sessionDate);
   return url.href;
 }

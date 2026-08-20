@@ -14,12 +14,12 @@ No implementar estas funciones hasta que la fase correspondiente se apruebe.
 - [x] Fase 6 — MediaPipe Hands (DEBUG)
 - [x] Fase 7 — números 1–10
 - [x] Fase 8 — ChallengeManager (3 números aleatorios seguidos)
+- [x] Fase 9 — AttendanceService (marca automática al pasar la prueba)
+- [x] Fase 11 — listado en vivo, historial semanal y export Excel del día
 
 ## Siguiente, solo con aprobación
 
-- [ ] Fase 9 — AttendanceService
-- [ ] Fase 10 — import CSV/XLSX
-- [ ] Fase 11 — dashboard y export
+- [ ] Fase 10 — import CSV/XLSX del listado oficial de la universidad
 - [ ] Fase 12 — cámara del celular por Wi-Fi local
 
 ## Fuera del MVP
