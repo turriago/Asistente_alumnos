@@ -126,7 +126,6 @@ function renderPreview() {
     previewBody.append(heading, table);
   }
   previewPanel.classList.remove("hidden");
-  previewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function fillSessionSelect(sessions, selectedDate) {
