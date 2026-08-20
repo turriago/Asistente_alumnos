@@ -112,7 +112,11 @@ async function openCamera() {
   video.muted = true;
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: false,
-    video: { facingMode: "user" },
+    video: {
+      facingMode: { ideal: "user" },
+      width: { ideal: 1280 },
+      height: { ideal: 960 },
+    },
   });
   video.srcObject = stream;
   await new Promise((resolve, reject) => {

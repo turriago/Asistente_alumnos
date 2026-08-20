@@ -312,3 +312,168 @@ video {
   font-weight: 700;
   font-size: 1.2rem;
 }
+
+/* Celular: cámara grande a pantalla, ficha compacta abajo. El PC sigue en dos columnas. */
+body.page-prueba {
+  min-height: 100dvh;
+}
+
+@media (max-width: 900px) {
+  body.page-prueba {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    min-height: 100svh;
+    overflow-x: hidden;
+  }
+
+  body.page-prueba .top {
+    padding: 0.45rem 1rem 0.35rem;
+    padding-top: max(0.45rem, env(safe-area-inset-top));
+  }
+
+  body.page-prueba .eyebrow {
+    font-size: 0.62rem;
+  }
+
+  body.page-prueba h1 {
+    margin: 0.08rem 0 0;
+    font-size: 1.18rem;
+  }
+
+  body.page-prueba .layout {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0;
+    gap: 0;
+  }
+
+  body.page-prueba .desktop-only {
+    display: none !important;
+  }
+
+  body.page-prueba .camera-panel {
+    background: #05080f;
+    border-radius: 0;
+    padding: 0;
+  }
+
+  body.page-prueba .video-wrap,
+  body.page-prueba .stage {
+    aspect-ratio: auto;
+    width: 100%;
+    height: 58dvh;
+    min-height: 340px;
+    max-height: 64dvh;
+    border-radius: 0;
+  }
+
+  body.page-prueba .stage video,
+  body.page-prueba .stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 0;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  body.page-prueba .card-panel {
+    flex: 1;
+    margin-top: -20px;
+    border-radius: 22px 22px 0 0;
+    padding: 0.85rem 1rem 0.4rem;
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.38);
+    position: relative;
+    z-index: 2;
+  }
+
+  body.page-prueba .card-panel h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.22rem;
+  }
+
+  body.page-prueba .pill {
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+  }
+
+  body.page-prueba .identity {
+    grid-template-columns: 72px 1fr;
+    gap: 0.7rem;
+  }
+
+  body.page-prueba .photo {
+    width: 72px;
+    height: 72px;
+  }
+
+  body.page-prueba .name {
+    font-size: 1.18rem;
+  }
+
+  body.page-prueba .id-line {
+    font-size: 0.95rem;
+  }
+
+  body.page-prueba .identity .muted {
+    display: none;
+  }
+
+  body.page-prueba .next {
+    margin-top: 0.8rem;
+    padding-top: 0.7rem;
+  }
+
+  body.page-prueba .next h3 {
+    margin-bottom: 0.3rem;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  body.page-prueba .next p {
+    font-size: 1rem;
+  }
+
+  body.page-prueba .gesture {
+    font-size: 2.3rem;
+    margin-top: 0.25rem;
+  }
+
+  body.page-prueba .actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    margin-top: 0.8rem;
+  }
+
+  body.page-prueba .actions button {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1.08rem;
+  }
+
+  body.page-prueba .footer-link {
+    margin: 0;
+    padding: 0.55rem 1rem calc(0.85rem + env(safe-area-inset-bottom));
+    background: var(--panel);
+  }
+
+  body.page-prueba .footer-link .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+@media (max-width: 900px) and (max-height: 740px) {
+  body.page-prueba .video-wrap,
+  body.page-prueba .stage {
+    height: 50dvh;
+    min-height: 260px;
+    max-height: 54dvh;
+  }
+}

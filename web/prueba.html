@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Sistema de asistencia</title>
-  <link rel="stylesheet" href="css/app.css">
+  <meta name="theme-color" content="#0b1220">
+  <link rel="stylesheet" href="css/app.css?v=6">
 </head>
-<body>
+<body class="page-prueba">
   <header class="top">
     <p class="eyebrow">Prototipo académico · web</p>
     <h1>Sistema de asistencia</h1>
@@ -14,13 +15,13 @@
 
   <main class="layout">
     <section class="camera-panel">
-      <h2>Cámara</h2>
+      <h2 class="desktop-only">Cámara</h2>
       <div class="stage video-wrap">
         <video id="cam" playsinline autoplay muted></video>
         <canvas id="overlay"></canvas>
         <p id="cam-placeholder" class="cam-placeholder">Pulsa <strong>Permitir cámara</strong> y acepta el aviso del navegador.</p>
       </div>
-      <p id="meta" class="meta">La ficha de la derecha es la misma vista que en el kiosco del PC.</p>
+      <p id="meta" class="meta desktop-only">Cámara del navegador. La ficha de la derecha es el siguiente paso.</p>
     </section>
 
     <aside class="card-panel" id="card">
@@ -60,6 +61,6 @@
         "En el teléfono la cámara solo funciona con https. Usa el sitio de Netlify, no la IP de la WiFi.";
     }
   </script>
-  <script type="module" src="js/prueba.js"></script>
+  <script type="module" src="js/prueba.js?v=6"></script>
 </body>
 </html>
