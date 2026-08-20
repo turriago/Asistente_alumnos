@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Listado de asistencia</title>
-  <link rel="stylesheet" href="css/app.css?v=19">
+  <link rel="stylesheet" href="css/app.css?v=20">
 </head>
 <body class="page-listado">
   <div class="wrap roster">
     <p class="eyebrow">Profesora · una clase por semana</p>
     <h1>Asistencia del día</h1>
-    <p class="muted">La clase de la mañana se archiva sola a las 12:00 p. m. hora Colombia. En curso vuelve a 0 y queda guardado quiénes fueron y quiénes faltaron.</p>
+    <p class="muted">Cada pase queda guardado en la base de datos. A las 12:00 p. m. hora Colombia el en curso vuelve a 0; el archivo de esa mañana se ve eligiendo el día abajo.</p>
     <p id="colombia-clock" class="colombia-clock">Hora Colombia: —</p>
     <p class="actions">
       <a class="btn qr-nav" href="profe.html">Activar QR</a>
@@ -24,19 +24,20 @@
         <input id="class-code" type="text" maxlength="32" autocomplete="off" aria-label="Código de clase">
         <button id="refresh" type="button" class="secondary">Actualizar</button>
       </div>
-      <label for="session-date">Día de clase</label>
+      <label for="session-date">Días guardados (archivo)</label>
       <select id="session-date"></select>
+      <p class="muted">Los archivados no se borran. Ábrelos aquí para ver quiénes fueron y quiénes faltaron.</p>
       <p id="session-meta" class="roster-session">Cargando…</p>
       <p id="status" class="muted"></p>
     </section>
 
     <section id="stats" class="stats" hidden>
       <article class="stat ok">
-        <p class="stat-label">En curso</p>
+        <p id="label-present" class="stat-label">En curso</p>
         <p id="count-present" class="stat-value">0</p>
       </article>
       <article class="stat wait">
-        <p class="stat-label">No fueron</p>
+        <p id="label-missing" class="stat-label">No fueron</p>
         <p id="count-missing" class="stat-value">0</p>
       </article>
       <article class="stat">
@@ -84,6 +85,6 @@
     <p id="photo-zoom-name"></p>
     <button id="photo-zoom-close" type="button" class="secondary">Cerrar</button>
   </div>
-  <script type="module" src="js/listado.js?v=19"></script>
+  <script type="module" src="js/listado.js?v=20"></script>
 </body>
 </html>

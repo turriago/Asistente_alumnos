@@ -124,7 +124,10 @@ function applyLiveUi() {
 }
 
 function zoomSize() {
-  return Math.max(280, Math.floor(Math.min(window.innerWidth, window.innerHeight) * 0.82));
+  const view = window.visualViewport;
+  const width = (view ? view.width : window.innerWidth) - 32;
+  const height = (view ? view.height : window.innerHeight) - 170;
+  return Math.max(180, Math.floor(Math.min(width, height)));
 }
 
 function isZoomOpen() {
@@ -300,7 +303,9 @@ qrBox.addEventListener("click", () => {
   if (active) openQrZoom();
 });
 qrZoom?.addEventListener("click", (event) => {
-  if (event.target === qrZoom || event.target === zoomCanvas) closeQrZoom();
+  if (event.target === qrZoom || event.target === zoomCanvas || event.target.classList.contains("qr-zoom-frame")) {
+    closeQrZoom();
+  }
 });
 qrZoomClose?.addEventListener("click", (event) => {
   event.stopPropagation();

@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>QR de la clase</title>
-  <link rel="stylesheet" href="css/app.css?v=19">
+  <link rel="stylesheet" href="css/app.css?v=20">
 </head>
 <body>
   <div class="wrap">
@@ -40,11 +40,12 @@
     </p>
   </div>
   <div id="qr-zoom" class="qr-zoom hidden">
-    <p id="qr-zoom-count" class="qr-countdown">—</p>
-    <canvas id="qr-zoom-canvas"></canvas>
-    <p class="muted">Toca el código o pulsa Cerrar para volver.</p>
+    <p id="qr-zoom-count" class="qr-countdown qr-zoom-count">—</p>
+    <div class="qr-zoom-frame">
+      <canvas id="qr-zoom-canvas"></canvas>
+    </div>
     <button id="qr-zoom-close" type="button" class="secondary">Cerrar</button>
   </div>
-  <script type="module" src="js/profe.js?v=19"></script>
+  <script type="module" src="js/profe.js?v=20"></script>
 </body>
 </html>

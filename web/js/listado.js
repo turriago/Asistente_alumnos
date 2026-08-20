@@ -171,11 +171,14 @@ async function load() {
     currentStudents = roster.students;
     dayArchived = Boolean(roster.archived);
     const livePresent = dayArchived ? 0 : currentPresent.length;
-    const liveMissing = dayArchived ? 0 : currentMissing.length;
     const total = currentPresent.length + currentMissing.length;
+    const labelPresent = document.getElementById("label-present");
+    const labelMissing = document.getElementById("label-missing");
     document.getElementById("count-present").textContent = String(livePresent);
-    document.getElementById("count-missing").textContent = String(liveMissing);
+    document.getElementById("count-missing").textContent = String(currentMissing.length);
     document.getElementById("count-total").textContent = String(currentStudents.length || total);
+    if (labelPresent) labelPresent.textContent = "En curso";
+    if (labelMissing) labelMissing.textContent = dayArchived ? "Faltaron" : "No fueron";
     statsEl.hidden = !roster.open;
     summaryEl.hidden = !roster.open;
     presentList.replaceChildren();
