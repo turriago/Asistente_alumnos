@@ -64,6 +64,18 @@ def create_app(engine: KioskEngine | None = None) -> FastAPI:
     def reset_challenge() -> dict[str, object]:
         return kiosk_engine.reset_scan()
 
+    @app.get("/api/web-gallery")
+    def web_gallery() -> dict[str, object]:
+        from attendance_system.gallery_sync import build_web_gallery
+
+        return build_web_gallery(config)
+
+    @app.post("/api/web-gallery/publish")
+    def publish_gallery() -> dict[str, object]:
+        from attendance_system.gallery_sync import publish_web_gallery
+
+        return publish_web_gallery(config)
+
     @app.get("/api/photo/{student_id}")
     def photo(student_id: str) -> Response:
         if not _SAFE_ID.match(student_id):

@@ -2,6 +2,7 @@ import { tokenIsValid } from "./token.js";
 import { NumberSmoother, readNumber } from "./fingers.js";
 import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
+import { fetchGallery, fingerprintFromSource, matchStudent, prepareGallery } from "./gallery.js";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -20,6 +21,7 @@ const nameEl = document.getElementById("name");
 const sidEl = document.getElementById("sid");
 const programEl = document.getElementById("program");
 const card = document.getElementById("card");
+const galleryStrip = document.getElementById("gallery-strip");
 const ctx = overlay.getContext("2d", { alpha: true });
 
 const params = new URLSearchParams(location.search);
@@ -35,9 +37,28 @@ let lastSnap = 0;
 let lastVideoTime = -1;
 let hasFace = false;
 let running = true;
+let gallery = [];
+let matched = null;
+
+function renderGalleryStrip(students) {
+  galleryStrip.innerHTML = "";
+  if (!students.length) {
+    galleryStrip.classList.add("hidden");
+    return;
+  }
+  galleryStrip.classList.remove("hidden");
+  for (const student of students) {
+    const img = document.createElement("img");
+    img.src = student.photo;
+    img.alt = student.name || student.id;
+    img.title = student.name || student.id;
+    galleryStrip.appendChild(img);
+  }
+}
 
 function showCard(hasPerson) {
   if (!hasPerson) {
+    matched = null;
     photo.classList.add("hidden");
     fallback.classList.remove("hidden");
     fallback.textContent = "?";
@@ -47,9 +68,19 @@ function showCard(hasPerson) {
     card.classList.remove("identified");
     return;
   }
-  nameEl.textContent = "Estudiante";
-  sidEl.textContent = "ID: sesión web";
-  programEl.textContent = "Prueba desde el celular";
+  if (matched) {
+    nameEl.textContent = matched.name;
+    sidEl.textContent = "ID: " + matched.id;
+    programEl.textContent = [matched.program, matched.group].filter(Boolean).join(" · ");
+    photo.src = matched.photo;
+    photo.classList.remove("hidden");
+    fallback.classList.add("hidden");
+    card.classList.add("identified");
+    return;
+  }
+  nameEl.textContent = gallery.length ? "No identificado" : "Estudiante";
+  sidEl.textContent = gallery.length ? "ID: —" : "ID: sesión web";
+  programEl.textContent = gallery.length ? "Las fotos locales aún no coinciden" : "Prueba desde el celular";
   card.classList.add("identified");
 }
 
@@ -198,22 +229,45 @@ function tick() {
     numberEl.classList.remove("hidden");
     startBtn.disabled = true;
   } else {
-    setPill(hasFace ? "Identificado" : "Esperando", hasFace ? "ok" : "waiting");
-    headline.textContent = hasFace ? "Estudiante detectado" : "Esperando un rostro";
-    next.textContent = hasFace
+    if (hasFace && detections[0] && detections[0].boundingBox) {
+      const box = detections[0].boundingBox;
+      const query = fingerprintFromSource(
+        video,
+        box.originX,
+        box.originY,
+        box.width,
+        box.height,
+      );
+      matched = matchStudent(gallery, query);
+    } else {
+      matched = null;
+    }
+    const identified = Boolean(hasFace && matched);
+    const ready = gallery.length ? identified : hasFace;
+    setPill(
+      identified ? "Identificado" : (hasFace && gallery.length ? "No identificado" : (hasFace ? "Identificado" : "Esperando")),
+      ready ? "ok" : (hasFace ? "bad" : "waiting"),
+    );
+    headline.textContent = ready
+      ? "Estudiante detectado"
+      : (hasFace ? "Estudiante no identificado" : "Esperando un rostro");
+    next.textContent = ready
       ? "Pulsa Iniciar prueba para los 3 números aleatorios."
-      : "Pulsa Permitir cámara y ponte frente al teléfono.";
+      : (hasFace
+        ? "Ponte de frente. Si no sale tu ficha, en el PC pulsa Enviar fotos al celular."
+        : "Pulsa Permitir cámara y ponte frente al teléfono.");
     numberEl.textContent = gesture != null ? String(gesture) : "—";
-    startBtn.disabled = !hasFace;
+    startBtn.disabled = !ready;
     showCard(hasFace);
     numberEl.classList.toggle("hidden", gesture == null);
-    if (hasFace) snapFace(detections[0] && detections[0].boundingBox);
+    if (hasFace && !matched) snapFace(detections[0] && detections[0].boundingBox);
   }
   requestAnimationFrame(tick);
 }
 
 startBtn.addEventListener("click", () => {
   if (!hasFace) return;
+  if (gallery.length && !matched) return;
   challenge.start(performance.now());
   smoother.reset();
   againBtn.classList.add("hidden");
@@ -255,7 +309,10 @@ async function startCamera() {
     handsTracker = trackers.hands;
     camBtn.classList.add("hidden");
     placeholder.classList.add("hidden");
-    setPill("Listo", "ok");
+    const galleryCode = classCode || "aula1";
+    gallery = await prepareGallery(await fetchGallery(galleryCode));
+    renderGalleryStrip(gallery);
+    setPill(gallery.length ? "Listo" : "Sin fotos", gallery.length ? "ok" : "waiting");
     requestAnimationFrame(tick);
   } catch (err) {
     camBtn.disabled = false;
@@ -272,6 +329,9 @@ async function main() {
   if (!valid) return;
   setPill("Listo");
   next.textContent = "Pulsa Permitir cámara. El navegador lo pide al tocar el botón.";
+  const galleryCode = classCode || "aula1";
+  gallery = await prepareGallery(await fetchGallery(galleryCode));
+  renderGalleryStrip(gallery);
 }
 
 main();

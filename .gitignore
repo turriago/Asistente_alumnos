@@ -67,6 +67,9 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
+web/runtime/**
+!web/runtime/README.md
+
 # Netlify CLI
 .netlify/
 
@@ -74,6 +77,9 @@ Desktop.ini
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Node (solo la función de Netlify)
+node_modules/
 
 # OneDrive / Windows leftovers
 ~$*

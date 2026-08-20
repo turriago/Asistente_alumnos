@@ -19,6 +19,7 @@ from attendance_system.face.embedder import EmbedderError, FaceEmbedder
 from attendance_system.face.matcher import FaceMatcher, GalleryEntry, MatchResult, select_kiosk_gallery
 from attendance_system.face.model import FaceModelError
 from attendance_system.face.types import DetectedFace
+from attendance_system.gallery_sync import publish_web_gallery
 from attendance_system.hands.detector import HandDetector, HandDetectorError
 from attendance_system.hands.fingers import NumberSmoother, count_extended_fingers, read_number
 from attendance_system.hands.focus import focus_settings_from_config, select_gesture_hands
@@ -125,6 +126,13 @@ class KioskEngine:
             self._paused = False
         return {"ok": True}
 
+    def _sync_web_gallery(self) -> None:
+        try:
+            result = publish_web_gallery(self.config)
+            logger.info("Galería web: %s", result.get("message"))
+        except Exception as exc:
+            logger.warning("No se pudo publicar la galería web: %s", exc)
+
     def _publish(self, frame: np.ndarray, status: KioskStatus) -> None:
         jpeg = encode_jpeg(frame, self.config.kiosk.jpeg_quality)
         with self._lock:
@@ -152,6 +160,7 @@ class KioskEngine:
             return
 
         logger.info("Galería del kiosco: %s embedding(s).", matcher.size)
+        threading.Thread(target=self._sync_web_gallery, daemon=True, name="web-gallery").start()
         hand_detector: HandDetector | None = None
         hands_error: str | None = None
         try:

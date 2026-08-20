@@ -95,6 +95,8 @@ class KioskSettings:
     host: str
     port: int
     jpeg_quality: int
+    web_public_url: str
+    web_class_code: str
 
 
 @dataclass(frozen=True)
@@ -355,6 +357,16 @@ def load_config(explicit_path: str | Path | None = None) -> AppConfig:
         host=str(os.getenv("KIOSK_HOST", kiosk_raw.get("host", "127.0.0.1"))),
         port=_as_int(os.getenv("KIOSK_PORT", kiosk_raw.get("port")), 8080),
         jpeg_quality=_as_int(kiosk_raw.get("jpeg_quality"), 80),
+        web_public_url=str(
+            os.getenv(
+                "WEB_PUBLIC_URL",
+                kiosk_raw.get("web_public_url", "https://asistente-alumnos.netlify.app"),
+            )
+        ).strip().rstrip("/"),
+        web_class_code=str(
+            os.getenv("WEB_CLASS_CODE", kiosk_raw.get("web_class_code", "aula1"))
+        ).strip()
+        or "aula1",
     )
     if kiosk.port <= 0 or kiosk.port > 65535:
         raise ConfigError("kiosk.port debe estar entre 1 y 65535.")

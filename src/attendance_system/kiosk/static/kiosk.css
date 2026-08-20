@@ -185,7 +185,7 @@ h2, h3 { margin: 0 0 0.8rem; }
   animation: none;
 }
 
-.actions button:not(:disabled) {
+.actions button:not(:disabled)#start-test {
   animation: pulse-start 1.6s ease-in-out infinite;
 }
 

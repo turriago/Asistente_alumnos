@@ -159,6 +159,9 @@ def test_kiosk_http_without_camera() -> None:
     assert "kiosk.js?v=" in page.text
     assert client.get("/api/photo/bad.id").status_code == 400
     assert client.get("/api/photo/99999999").status_code == 404
+    gallery = client.get("/api/web-gallery")
+    assert gallery.status_code == 200
+    assert "students" in gallery.json()
     start = client.post("/api/challenge/start")
     assert start.status_code == 400
     reset = client.post("/api/challenge/reset")

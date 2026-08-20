@@ -83,3 +83,6 @@ kiosk:
   host: 127.0.0.1
   port: 8080
   jpeg_quality: 80
+  # El celular carga las miniaturas desde Netlify, no desde GitHub.
+  web_public_url: https://asistente-alumnos.netlify.app
+  web_class_code: aula1

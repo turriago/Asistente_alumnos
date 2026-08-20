@@ -11,6 +11,7 @@ const fallback = document.getElementById("photo-fallback");
 const demoBadge = document.getElementById("demo-badge");
 const startBtn = document.getElementById("start-test");
 const resetBtn = document.getElementById("reset-test");
+const publishBtn = document.getElementById("publish-gallery");
 const successBanner = document.getElementById("success-banner");
 let lastPhotoKey = "";
 
@@ -86,6 +87,18 @@ resetBtn.addEventListener("click", async () => {
     nextEl.textContent = String(err.message || err);
   } finally {
     resetBtn.disabled = false;
+  }
+});
+
+publishBtn.addEventListener("click", async () => {
+  publishBtn.disabled = true;
+  try {
+    const payload = await postAction("/api/web-gallery/publish");
+    metaEl.textContent = payload.message || "Fotos enviadas.";
+  } catch (err) {
+    metaEl.textContent = String(err.message || err);
+  } finally {
+    publishBtn.disabled = false;
   }
 });
 
