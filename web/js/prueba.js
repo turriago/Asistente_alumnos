@@ -29,6 +29,7 @@ const params = new URLSearchParams(location.search);
 const classCode = params.get("c") || "";
 const token = params.get("t") || "";
 const sessionDate = params.get("d") || "";
+const expiresAt = Number(params.get("exp") || "0") * 1000;
 const demo = params.get("demo") === "1";
 const challenge = new Challenge();
 const smoother = new NumberSmoother(400);
@@ -168,6 +169,12 @@ async function ensureToken() {
     setPill("Sin QR", "bad");
     headline.textContent = "Falta el código de la clase";
     next.textContent = "Pide a la profesora que te muestre el QR de esta sesión.";
+    return false;
+  }
+  if (expiresAt && Date.now() > expiresAt) {
+    setPill("QR cerrado", "bad");
+    headline.textContent = "El tiempo del QR ya se acabó";
+    next.textContent = "La profesora cerró el código. Pide que active el QR otra vez.";
     return false;
   }
   const ok = await tokenIsValid(classCode, token);

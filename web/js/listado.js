@@ -7,7 +7,7 @@ import {
   formatColombiaDate,
   formatColombiaTime,
 } from "./attendance.js";
-import { dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
+import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
 
 const DEFAULT_CODE = "aula1";
 const input = document.getElementById("class-code");
@@ -25,6 +25,15 @@ const missingEmpty = document.getElementById("missing-empty");
 const downloadDayBtn = document.getElementById("download-day");
 const shareDayBtn = document.getElementById("share-day");
 const downloadUniversityBtn = document.getElementById("download-university");
+const previewBtn = document.getElementById("preview-day");
+const previewPanel = document.getElementById("excel-preview");
+const previewBody = document.getElementById("excel-preview-body");
+const previewDownload = document.getElementById("preview-download");
+const previewClose = document.getElementById("preview-close");
+const zoom = document.getElementById("photo-zoom");
+const zoomImg = document.getElementById("photo-zoom-img");
+const zoomName = document.getElementById("photo-zoom-name");
+const zoomClose = document.getElementById("photo-zoom-close");
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
 
@@ -49,9 +58,11 @@ function renderPerson(student, extra) {
   const url = cardUrl(student);
   if (url) {
     const img = document.createElement("img");
-    img.className = "person-photo";
-    img.alt = "";
+    img.className = "person-photo zoomable";
+    img.alt = student.full_name || "";
     img.src = url;
+    img.title = "Toca para ver más grande";
+    img.addEventListener("click", () => openZoom(url, student.full_name || ""));
     row.append(img);
   } else {
     const fallback = document.createElement("div");
@@ -69,6 +80,41 @@ function renderPerson(student, extra) {
   body.append(name, meta);
   row.append(body);
   return row;
+}
+
+function openZoom(url, name) {
+  zoomImg.src = url;
+  zoomName.textContent = name;
+  zoom.classList.remove("hidden");
+}
+
+function closeZoom() {
+  zoom.classList.add("hidden");
+  zoomImg.src = "";
+}
+
+function renderPreview() {
+  if (!currentSession) return;
+  const sheets = daySheets(currentSession, currentPresent, currentMissing);
+  previewBody.replaceChildren();
+  for (const [title, rows] of sheets) {
+    const heading = document.createElement("h3");
+    heading.textContent = title;
+    const table = document.createElement("table");
+    table.className = "preview-table";
+    rows.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      for (const cell of row) {
+        const el = document.createElement(index === 0 ? "th" : "td");
+        el.textContent = cell;
+        tr.append(el);
+      }
+      table.append(tr);
+    });
+    previewBody.append(heading, table);
+  }
+  previewPanel.classList.remove("hidden");
+  previewPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function fillSessionSelect(sessions, selectedDate) {
@@ -120,6 +166,7 @@ async function load() {
     if (!currentSession) {
       downloadDayBtn.disabled = true;
       shareDayBtn.disabled = true;
+      previewBtn.disabled = true;
       sessionMeta.textContent = "Hoy todavía no se activó el QR. Ábrelo para registrar fecha y hora de esta clase.";
       summaryEl.hidden = true;
       presentEmpty.hidden = false;
@@ -162,9 +209,11 @@ async function load() {
     }
     downloadDayBtn.disabled = false;
     shareDayBtn.disabled = false;
+    previewBtn.disabled = false;
     statusEl.textContent = "Clase " + code + " · se actualiza sola cada 3 segundos.";
     livePill.textContent = "En vivo";
     livePill.className = "pill ok";
+    if (!previewPanel.classList.contains("hidden")) renderPreview();
   } catch (err) {
     livePill.textContent = "Sin conexión";
     livePill.className = "pill bad";
@@ -191,6 +240,20 @@ shareDayBtn.addEventListener("click", async () => {
 
 downloadUniversityBtn.addEventListener("click", () => {
   downloadWorkbook(universityWorkbook(currentStudents));
+});
+
+previewBtn.addEventListener("click", renderPreview);
+previewDownload.addEventListener("click", () => {
+  if (!currentSession) return;
+  downloadWorkbook(dayWorkbook(currentSession, currentPresent, currentMissing));
+});
+previewClose.addEventListener("click", () => previewPanel.classList.add("hidden"));
+zoomClose.addEventListener("click", closeZoom);
+zoom.addEventListener("click", (event) => {
+  if (event.target === zoom) closeZoom();
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeZoom();
 });
 
 input.addEventListener("change", () => {

@@ -74,7 +74,7 @@ def test_day_excel_has_date_time_and_counts() -> None:
         )
     )
     assert summary["Fecha"] == "2026-08-20"
-    assert summary["Hora de activación del QR"] == "00:00"
+    assert summary["Hora de activación del QR"] == "00:00:00"
     assert summary["Personas presentes"] == "1"
     assert summary["Personas que faltaron"] == "1"
     assert present_rows(present)[1][0] == "TMP-0004"

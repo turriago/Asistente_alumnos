@@ -673,6 +673,89 @@ select {
   font-size: 1.05rem;
 }
 
+.person-photo.zoomable {
+  cursor: zoom-in;
+}
+
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.8rem;
+  background: rgba(0, 0, 0, 0.92);
+  padding: 1.2rem;
+}
+
+.zoom-overlay img {
+  max-width: min(92vw, 720px);
+  max-height: 72vh;
+  border-radius: 16px;
+  object-fit: contain;
+}
+
+.zoom-overlay p {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.excel-preview {
+  overflow-x: auto;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.1rem;
+  font-size: 0.95rem;
+}
+
+.preview-table th,
+.preview-table td {
+  border: 1px solid #2a3650;
+  padding: 0.45rem 0.55rem;
+  text-align: left;
+}
+
+.preview-table th {
+  background: #0b1220;
+  color: var(--muted);
+}
+
+.activated-at {
+  margin: 0.2rem 0 0.35rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ok);
+}
+
+.qr-countdown {
+  margin: 0 0 0.7rem;
+  font-size: clamp(1.6rem, 6vw, 2.4rem);
+  font-weight: 800;
+  color: var(--wait);
+}
+
+.qr-box.expired {
+  position: relative;
+}
+
+.qr-box.expired::after {
+  content: "QR desactivado";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(11, 18, 32, 0.88);
+  color: var(--bad);
+  font-weight: 800;
+  font-size: 1.3rem;
+  border-radius: 16px;
+}
+
 @media (max-width: 800px) {
   .roster-grid,
   .stats,

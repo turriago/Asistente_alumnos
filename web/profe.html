@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR de la clase</title>
-  <link rel="stylesheet" href="css/app.css?v=14">
+  <link rel="stylesheet" href="css/app.css?v=15">
 </head>
 <body>
   <div class="wrap">
@@ -17,10 +17,15 @@
       <input id="class-code" type="text" maxlength="32" autocomplete="off">
       <label for="public-base">Enlace que debe abrir el celular</label>
       <input id="public-base" type="url" autocomplete="off" placeholder="https://tu-sitio.netlify.app/">
+      <label for="qr-minutes">Minutos que el QR estará activo</label>
+      <input id="qr-minutes" type="number" min="1" max="180" step="1" value="20">
       <button id="activate-qr" type="button">Activar QR</button>
       <div id="qr-live" class="qr-live hidden">
-        <div class="qr-box"><canvas id="qr"></canvas></div>
-        <p class="muted">Este código caduca en <strong id="ttl">—</strong> s</p>
+        <p id="activated-at" class="activated-at"></p>
+        <p id="qr-countdown" class="qr-countdown">—</p>
+        <div id="qr-box" class="qr-box"><canvas id="qr"></canvas></div>
+        <p id="expired-note" class="note warn hidden">El tiempo se acabó. El QR ya no sirve. Actívalo otra vez si quieres más minutos.</p>
+        <p class="muted">El código de seguridad cambia en <strong id="ttl">—</strong> s</p>
         <p id="link" class="note"></p>
         <p id="session-meta" class="roster-session"></p>
         <p class="muted">Proyecta esta pantalla. El estudiante solo escanea con la cámara del iPhone o Android.</p>
@@ -32,6 +37,6 @@
       <a class="btn secondary" href="index.html">Volver</a>
     </p>
   </div>
-  <script type="module" src="js/profe.js?v=14"></script>
+  <script type="module" src="js/profe.js?v=15"></script>
 </body>
 </html>

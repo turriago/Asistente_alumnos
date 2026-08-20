@@ -38,7 +38,7 @@ function sourceLabel(source) {
   return "celular";
 }
 
-export function dayWorkbook(session, present, missing) {
+export function daySheets(session, present, missing) {
   const classCode = session.class_code || "aula1";
   const day = session.session_date || "";
   const summary = [
@@ -67,14 +67,19 @@ export function dayWorkbook(session, present, missing) {
       student.group_name || student.group || "",
     ]);
   }
-  const filename = `asistencia_${classCode}_${day}.xlsx`;
+  return [
+    ["Resumen", summary],
+    ["Presentes", presentSheet],
+    ["Ausentes", missingSheet],
+  ];
+}
+
+export function dayWorkbook(session, present, missing) {
+  const classCode = session.class_code || "aula1";
+  const day = session.session_date || "";
   return {
-    filename,
-    blob: workbookBlob([
-      ["Resumen", summary],
-      ["Presentes", presentSheet],
-      ["Ausentes", missingSheet],
-    ]),
+    filename: `asistencia_${classCode}_${day}.xlsx`,
+    blob: workbookBlob(daySheets(session, present, missing)),
   };
 }
 

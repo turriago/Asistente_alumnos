@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Listado de asistencia</title>
-  <link rel="stylesheet" href="css/app.css?v=14">
+  <link rel="stylesheet" href="css/app.css?v=15">
 </head>
 <body class="page-listado">
   <div class="wrap roster">
@@ -45,10 +45,19 @@
     <p id="summary" class="roster-summary" hidden></p>
 
     <p class="actions export-actions">
+      <button id="preview-day" type="button">Ver Excel antes de descargar</button>
       <button id="download-day" type="button">Descargar Excel del día</button>
       <button id="share-day" type="button" class="secondary">Compartir Excel</button>
       <button id="download-university" type="button" class="secondary">Plantilla universidad</button>
     </p>
+    <section id="excel-preview" class="panel excel-preview hidden">
+      <h2>Vista previa del Excel</h2>
+      <div id="excel-preview-body"></div>
+      <p class="actions">
+        <button id="preview-download" type="button">Descargar este Excel</button>
+        <button id="preview-close" type="button" class="secondary">Cerrar vista</button>
+      </p>
+    </section>
 
     <div class="roster-grid">
       <section class="panel roster-col">
@@ -68,6 +77,11 @@
       <a class="btn secondary" href="index.html">Volver</a>
     </p>
   </div>
-  <script type="module" src="js/listado.js?v=13"></script>
+  <div id="photo-zoom" class="zoom-overlay hidden">
+    <img id="photo-zoom-img" alt="">
+    <p id="photo-zoom-name"></p>
+    <button id="photo-zoom-close" type="button" class="secondary">Cerrar</button>
+  </div>
+  <script type="module" src="js/listado.js?v=15"></script>
 </body>
 </html>

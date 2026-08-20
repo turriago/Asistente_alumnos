@@ -4,6 +4,7 @@ import { ensureSession, formatColombiaDate, formatColombiaTime } from "./attenda
 
 const input = document.getElementById("class-code");
 const publicBase = document.getElementById("public-base");
+const minutesInput = document.getElementById("qr-minutes");
 const canvas = document.getElementById("qr");
 const ttl = document.getElementById("ttl");
 const link = document.getElementById("link");
@@ -12,10 +13,15 @@ const sessionMeta = document.getElementById("session-meta");
 const statePill = document.getElementById("state-pill");
 const activateBtn = document.getElementById("activate-qr");
 const qrLive = document.getElementById("qr-live");
+const qrBox = document.getElementById("qr-box");
+const countdownEl = document.getElementById("qr-countdown");
+const activatedAtEl = document.getElementById("activated-at");
+const expiredNote = document.getElementById("expired-note");
 const DEFAULT_CODE = "aula1";
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
 publicBase.value = localStorage.getItem("publicBase") || "";
+minutesInput.value = localStorage.getItem("qrMinutes") || "20";
 if (publicBase.value.startsWith("http://") && !/127\.0\.0\.1|localhost/i.test(publicBase.value)) {
   publicBase.value = "";
   localStorage.removeItem("publicBase");
@@ -27,6 +33,8 @@ let lastBase = "";
 let lanBase = "";
 let session = null;
 let active = false;
+let expiresAt = 0;
+let activatedAt = null;
 
 function isLoopback(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
@@ -43,24 +51,55 @@ function studentBase() {
   return pageBase();
 }
 
-function showSession() {
-  if (!session) {
-    sessionMeta.textContent = "No se pudo guardar la fecha de hoy. Revisa la conexión.";
-    return;
+function minutes() {
+  const value = Number(minutesInput.value);
+  if (!Number.isFinite(value) || value < 1) return 20;
+  return Math.min(180, Math.round(value));
+}
+
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
+function remainLabel(ms) {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h) return `${h}:${pad(m)}:${pad(s)}`;
+  return `${m}:${pad(s)}`;
+}
+
+function showTimes() {
+  if (activatedAt) {
+    activatedAtEl.textContent =
+      "Activado exactamente a las " + formatColombiaTime(activatedAt.toISOString());
   }
-  sessionMeta.textContent =
-    formatColombiaDate(session.session_date) +
-    " · QR activado a las " +
-    formatColombiaTime(session.started_at);
+  if (session) {
+    sessionMeta.textContent =
+      formatColombiaDate(session.session_date) +
+      " · clase abierta a las " +
+      formatColombiaTime(session.started_at);
+  }
+}
+
+function deactivate() {
+  active = false;
+  qrBox.classList.add("expired");
+  expiredNote.classList.remove("hidden");
+  countdownEl.textContent = "Tiempo agotado · 0:00";
+  statePill.textContent = "QR cerrado";
+  statePill.className = "pill bad";
+  activateBtn.disabled = false;
+  activateBtn.textContent = "Activar QR otra vez";
+  link.textContent = "El QR ya no admite nuevos estudiantes.";
 }
 
 async function activateToday() {
   const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
   try {
     session = await ensureSession(code);
-    statePill.textContent = "QR activo";
-    statePill.className = "pill ok";
-    showSession();
+    showTimes();
     return true;
   } catch {
     session = null;
@@ -89,9 +128,15 @@ async function detectLan() {
 
 async function render() {
   if (!active) return;
+  if (expiresAt && Date.now() >= expiresAt) {
+    deactivate();
+    return;
+  }
   const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
   localStorage.setItem("classCode", code);
   localStorage.setItem("publicBase", publicBase.value.trim());
+  localStorage.setItem("qrMinutes", String(minutes()));
+  countdownEl.textContent = "El QR se apaga en " + remainLabel(expiresAt - Date.now());
   if (!session || session.class_code !== code) {
     const ok = await activateToday();
     if (!ok) return;
@@ -104,7 +149,7 @@ async function render() {
   lastCode = code;
   lastBase = base;
   const token = await currentToken(code);
-  const url = studentUrl(base, code, token, session && session.session_date);
+  const url = studentUrl(base, code, token, session && session.session_date, expiresAt);
   await QRCode.toCanvas(canvas, url, { width: 320, margin: 1 });
   link.textContent = url;
 }
@@ -118,13 +163,23 @@ activateBtn.addEventListener("click", async () => {
     activateBtn.textContent = "Activar QR";
     return;
   }
+  activatedAt = new Date();
+  expiresAt = Date.now() + minutes() * 60 * 1000;
   active = true;
   qrLive.classList.remove("hidden");
+  qrBox.classList.remove("expired");
+  expiredNote.classList.add("hidden");
+  statePill.textContent = "QR activo";
+  statePill.className = "pill ok";
   activateBtn.textContent = "QR activo";
+  showTimes();
   lastWindow = -1;
   await render();
 });
 
+minutesInput.addEventListener("change", () => {
+  localStorage.setItem("qrMinutes", String(minutes()));
+});
 input.addEventListener("input", () => {
   lastWindow = -1;
   session = null;

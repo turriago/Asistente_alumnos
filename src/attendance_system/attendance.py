@@ -40,7 +40,7 @@ def format_colombia_time(iso: str | None) -> str:
     if not iso:
         return ""
     stamp = datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(BOGOTA)
-    return stamp.strftime("%H:%M")
+    return stamp.strftime("%H:%M:%S")
 
 
 def split_roster(
