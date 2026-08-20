@@ -4,7 +4,7 @@ import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
 import { fetchGallery, prepareGallery } from "./gallery.js?v=11";
 import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=11";
-import { recordPass, colombiaToday, isDayArchived } from "./attendance.js";
+import { recordPass } from "./attendance.js?v=22";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -175,12 +175,6 @@ async function ensureToken() {
     setPill("QR cerrado", "bad");
     headline.textContent = "El tiempo del QR ya se acabó";
     next.textContent = "La profesora cerró el código. Pide que active el QR otra vez.";
-    return false;
-  }
-  if (isDayArchived(sessionDate || colombiaToday())) {
-    setPill("Día archivado", "bad");
-    headline.textContent = "Ya se archivó la clase de hoy";
-    next.textContent = "Después de las 12:00 p. m. hora Colombia no entra más asistencia.";
     return false;
   }
   const ok = await tokenIsValid(classCode, token);

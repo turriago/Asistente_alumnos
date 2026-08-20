@@ -40,6 +40,16 @@ export function noonMs(sessionDate) {
   return new Date(day + "T12:00:00-05:00").getTime();
 }
 
+export function endOfDayMs(sessionDate) {
+  const day = sessionDate || colombiaToday();
+  return new Date(day + "T00:00:00-05:00").getTime() + 24 * 60 * 60 * 1000;
+}
+
+export function qrCapMs(sessionDate, now = Date.now()) {
+  const day = sessionDate || colombiaToday(new Date(now));
+  return now < noonMs(day) ? noonMs(day) : endOfDayMs(day);
+}
+
 export function isDayArchived(sessionDate, now = Date.now()) {
   const day = sessionDate || colombiaToday(new Date(now));
   return now >= noonMs(day);
@@ -50,6 +60,14 @@ export function passesBeforeNoon(passes, sessionDate) {
   return (passes || []).filter((row) => {
     const stamp = new Date(row.passed_at).getTime();
     return Number.isFinite(stamp) && stamp < cutoff;
+  });
+}
+
+export function passesFromNoon(passes, sessionDate) {
+  const cutoff = noonMs(sessionDate);
+  return (passes || []).filter((row) => {
+    const stamp = new Date(row.passed_at).getTime();
+    return Number.isFinite(stamp) && stamp >= cutoff;
   });
 }
 
@@ -164,7 +182,6 @@ export async function recordPass({ id, name, classCode, source, sessionDate }) {
   const studentId = String(id || "").trim();
   if (!studentId || !SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
   const day = sessionDate || colombiaToday();
-  if (isDayArchived(day)) return false;
   const session = await ensureSession(classCode || "aula1", day);
   if (!session) return false;
   const response = await fetch(restUrl("attendance"), {
@@ -210,9 +227,26 @@ export async function fetchRoster(classCode, session) {
     "No se pudo leer la asistencia.",
   );
   const archived = isDayArchived(session.session_date);
-  const morning = archived ? passesBeforeNoon(passes || [], session.session_date) : passes || [];
-  const split = splitRoster(students || [], morning);
-  return { ...split, students: students || [], open: true, archived };
+  const today = colombiaToday();
+  const afternoonLive = archived && session.session_date === today;
+  const all = passes || [];
+  const morningPasses = passesBeforeNoon(all, session.session_date);
+  const afternoonPasses = passesFromNoon(all, session.session_date);
+  const allSplit = splitRoster(students || [], all);
+  const morning = splitRoster(students || [], morningPasses);
+  const live = splitRoster(students || [], afternoonLive ? afternoonPasses : all);
+  return {
+    present: live.present,
+    missing: afternoonLive ? allSplit.missing : live.missing,
+    morningPresent: morning.present,
+    morningMissing: morning.missing,
+    allPresent: allSplit.present,
+    allMissing: allSplit.missing,
+    students: students || [],
+    open: true,
+    archived,
+    afternoonLive,
+  };
 }
 
 export function cardUrl(student) {

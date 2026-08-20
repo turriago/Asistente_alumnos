@@ -8,8 +8,8 @@ import {
   formatColombiaDate,
   formatColombiaTime,
   isDayArchived,
-  noonMs,
-} from "./attendance.js";
+  qrCapMs,
+} from "./attendance.js?v=22";
 import { clearQrLive, loadQrLive, saveQrLive } from "./qr-session.js";
 
 if (!requireProfessor()) throw new Error("login");
@@ -39,7 +39,10 @@ const DEFAULT_CODE = "aula1";
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
 publicBase.value = localStorage.getItem("publicBase") || "";
 minutesInput.value = localStorage.getItem("qrMinutes") || "20";
-if (publicBase.value.startsWith("http://") && !/127\.0\.0\.1|localhost/i.test(publicBase.value)) {
+if (
+  (publicBase.value.startsWith("http://") && !/127\.0\.0\.1|localhost/i.test(publicBase.value)) ||
+  /tu-sitio\.netlify\.app/i.test(publicBase.value)
+) {
   publicBase.value = "";
   localStorage.removeItem("publicBase");
 }
@@ -209,10 +212,6 @@ async function detectLan() {
 async function render() {
   if (clockEl) clockEl.textContent = "Hora Colombia: " + formatColombiaClock();
   if (!active) return;
-  if (isDayArchived(session && session.session_date)) {
-    deactivate("Ya son las 12:00 p. m. hora Colombia. El día se archivó y los presentes del en curso volvieron a 0.");
-    return;
-  }
   if (expiresAt && Date.now() >= expiresAt) {
     deactivate();
     return;
@@ -245,14 +244,6 @@ async function render() {
 activateBtn.addEventListener("click", async () => {
   activateBtn.disabled = true;
   activateBtn.textContent = "Activando…";
-  if (isDayArchived(colombiaToday())) {
-    activateBtn.disabled = false;
-    activateBtn.textContent = "Activar QR";
-    statePill.textContent = "Día archivado";
-    statePill.className = "pill bad";
-    sessionMeta.textContent = "Ya pasaron las 12:00 p. m. hora Colombia. La asistencia de la mañana quedó archivada.";
-    return;
-  }
   const ok = await activateToday();
   if (!ok) {
     activateBtn.disabled = false;
@@ -260,7 +251,7 @@ activateBtn.addEventListener("click", async () => {
     return;
   }
   activatedAt = new Date();
-  expiresAt = Math.min(Date.now() + minutes() * 60 * 1000, noonMs(colombiaToday()));
+  expiresAt = Math.min(Date.now() + minutes() * 60 * 1000, qrCapMs(colombiaToday()));
   active = true;
   applyLiveUi();
   persistLive();
@@ -271,10 +262,6 @@ activateBtn.addEventListener("click", async () => {
 async function restoreLive() {
   const saved = loadQrLive();
   if (!saved) return;
-  if (isDayArchived(saved.session && saved.session.session_date)) {
-    clearQrLive();
-    return;
-  }
   if (saved.classCode) input.value = saved.classCode;
   if (typeof saved.publicBase === "string") publicBase.value = saved.publicBase;
   activatedAt = saved.activatedAt ? new Date(saved.activatedAt) : new Date();
@@ -320,5 +307,10 @@ window.addEventListener("resize", () => {
 
 await detectLan();
 await restoreLive();
+if (!active && isDayArchived(colombiaToday())) {
+  statePill.textContent = "Tarde · puedes activar el QR";
+  statePill.className = "pill ok";
+  sessionMeta.textContent = "La mañana ya quedó archivada. Activa el QR para tomar asistencia de la tarde.";
+}
 setInterval(render, 250);
 document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());

@@ -268,9 +268,6 @@ def record_pass(
     if not student_id:
         return False
     day = session_date or colombia_today()
-    if is_day_archived(day):
-        logger.info("No se registra asistencia: el día %s ya se archivó a las 12:00.", day)
-        return False
     session = ensure_session(config, session_date=day)
     if not session:
         return False
