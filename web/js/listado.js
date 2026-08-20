@@ -10,6 +10,9 @@ import {
   isDayArchived,
 } from "./attendance.js";
 import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
+import { logoutProfessor, requireProfessor } from "./auth.js";
+
+if (!requireProfessor()) throw new Error("login");
 
 const DEFAULT_CODE = "aula1";
 const input = document.getElementById("class-code");
@@ -254,30 +257,41 @@ async function load() {
   }
 }
 
+function safeDownload(factory) {
+  try {
+    downloadWorkbook(factory());
+    statusEl.textContent = "Excel descargado.";
+  } catch (err) {
+    statusEl.textContent = "No se pudo descargar el Excel. Recarga la página e inténtalo otra vez.";
+    console.error(err);
+  }
+}
+
 downloadDayBtn.addEventListener("click", () => {
   if (!currentSession) return;
-  downloadWorkbook(dayWorkbook(currentSession, currentPresent, currentMissing));
+  safeDownload(() => dayWorkbook(currentSession, currentPresent, currentMissing));
 });
 
 shareDayBtn.addEventListener("click", async () => {
   if (!currentSession) return;
-  const file = dayWorkbook(currentSession, currentPresent, currentMissing);
   try {
+    const file = dayWorkbook(currentSession, currentPresent, currentMissing);
     const shared = await shareWorkbook(file, "Asistencia " + currentSession.session_date);
     if (!shared) statusEl.textContent = "Este aparato no comparte archivos. Se descargó el Excel.";
-  } catch {
-    downloadWorkbook(file);
+  } catch (err) {
+    statusEl.textContent = "No se pudo compartir el Excel. Recarga la página e inténtalo otra vez.";
+    console.error(err);
   }
 });
 
 downloadUniversityBtn.addEventListener("click", () => {
-  downloadWorkbook(universityWorkbook(currentStudents));
+  safeDownload(() => universityWorkbook(currentStudents));
 });
 
 previewBtn.addEventListener("click", renderPreview);
 previewDownload.addEventListener("click", () => {
   if (!currentSession) return;
-  downloadWorkbook(dayWorkbook(currentSession, currentPresent, currentMissing));
+  safeDownload(() => dayWorkbook(currentSession, currentPresent, currentMissing));
 });
 previewClose.addEventListener("click", () => previewPanel.classList.add("hidden"));
 zoomClose.addEventListener("click", closeZoom);
@@ -303,3 +317,4 @@ tickClock();
 load();
 setInterval(load, 3000);
 setInterval(tickClock, 1000);
+document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());

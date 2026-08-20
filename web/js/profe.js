@@ -1,3 +1,4 @@
+import { logoutProfessor, requireProfessor } from "./auth.js";
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 import { currentToken, remainingMs, studentUrl, windowIndex } from "./token.js";
 import {
@@ -9,6 +10,8 @@ import {
   isDayArchived,
   noonMs,
 } from "./attendance.js";
+
+if (!requireProfessor()) throw new Error("login");
 
 const input = document.getElementById("class-code");
 const publicBase = document.getElementById("public-base");
@@ -215,3 +218,4 @@ publicBase.addEventListener("input", () => {
 
 await detectLan();
 setInterval(render, 250);
+document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());
