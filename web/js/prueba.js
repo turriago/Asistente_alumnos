@@ -48,6 +48,52 @@ let trackersPromise = null;
 let faceApiPromise = null;
 let attendanceSent = false;
 
+function doneKey() {
+  return "asistencia-ok:" + (classCode || "demo") + ":" + (token || "demo") + ":" + (sessionDate || "");
+}
+
+function alreadyDone() {
+  try {
+    return sessionStorage.getItem(doneKey()) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markDone() {
+  try {
+    sessionStorage.setItem(doneKey(), "1");
+  } catch {
+    /* modo privado */
+  }
+}
+
+function stopCamera() {
+  running = false;
+  if (recognizeTimer) {
+    clearInterval(recognizeTimer);
+    recognizeTimer = 0;
+  }
+  const stream = video.srcObject;
+  if (stream && typeof stream.getTracks === "function") {
+    for (const track of stream.getTracks()) track.stop();
+  }
+  video.srcObject = null;
+  video.pause();
+  if (ctx && overlay.width) ctx.clearRect(0, 0, overlay.width, overlay.height);
+}
+
+function showThanks() {
+  stopCamera();
+  markDone();
+  document.body.classList.add("thanks-lock");
+  const thanks = document.getElementById("thanks");
+  thanks.classList.remove("hidden");
+  camBtn.classList.add("hidden");
+  startBtn.classList.add("hidden");
+  againBtn.classList.add("hidden");
+}
+
 function preloadModels() {
   if (!trackersPromise) trackersPromise = createTrackers();
   if (!faceApiPromise) faceApiPromise = loadFaceApi();
@@ -221,8 +267,6 @@ function tick() {
   const view = challenge.observe(now, gesture);
 
   if (view.state === "success") {
-    running = false;
-    video.pause();
     if (!attendanceSent && matched && matched.id) {
       attendanceSent = true;
       recordPass({
@@ -235,15 +279,7 @@ function tick() {
         attendanceSent = false;
       });
     }
-    setPill("Prueba OK", "ok");
-    headline.textContent = "Su prueba fue exitosa.";
-    next.textContent = "Su prueba fue exitosa.";
-    numberEl.textContent = "—";
-    numberEl.classList.add("hidden");
-    success.classList.remove("hidden");
-    startBtn.disabled = true;
-    againBtn.classList.remove("hidden");
-    camBtn.classList.add("hidden");
+    showThanks();
     return;
   }
   if (view.state === "failed") {
@@ -284,6 +320,7 @@ function tick() {
 }
 
 startBtn.addEventListener("click", () => {
+  if (alreadyDone() || document.body.classList.contains("thanks-lock")) return;
   if (!hasFace) return;
   if (gallery.length && !matched) return;
   challenge.start(performance.now());
@@ -296,6 +333,7 @@ camBtn.addEventListener("click", () => {
 });
 
 againBtn.addEventListener("click", () => {
+  if (alreadyDone() || document.body.classList.contains("thanks-lock")) return;
   challenge.reset();
   smoother.reset();
   attendanceSent = false;
@@ -332,6 +370,10 @@ function startRecognizer() {
 }
 
 async function startCamera() {
+  if (alreadyDone()) {
+    showThanks();
+    return;
+  }
   if (!window.isSecureContext) {
     setPill("Sin https", "bad");
     headline.textContent = "El celular bloquea la cámara";
@@ -380,6 +422,10 @@ async function startCamera() {
 }
 
 async function main() {
+  if (alreadyDone()) {
+    showThanks();
+    return;
+  }
   if (!window.isSecureContext) return;
   const valid = await ensureToken();
   if (!valid) return;

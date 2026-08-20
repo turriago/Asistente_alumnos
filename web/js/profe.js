@@ -10,6 +10,8 @@ const link = document.getElementById("link");
 const warn = document.getElementById("warn");
 const sessionMeta = document.getElementById("session-meta");
 const statePill = document.getElementById("state-pill");
+const activateBtn = document.getElementById("activate-qr");
+const qrLive = document.getElementById("qr-live");
 const DEFAULT_CODE = "aula1";
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
@@ -24,6 +26,7 @@ let lastCode = "";
 let lastBase = "";
 let lanBase = "";
 let session = null;
+let active = false;
 
 function isLoopback(host) {
   return host === "localhost" || host === "127.0.0.1" || host === "[::1]";
@@ -55,14 +58,16 @@ async function activateToday() {
   const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
   try {
     session = await ensureSession(code);
-    statePill.textContent = "Clase abierta";
+    statePill.textContent = "QR activo";
     statePill.className = "pill ok";
     showSession();
+    return true;
   } catch {
     session = null;
     statePill.textContent = "Sin sesión";
     statePill.className = "pill bad";
     sessionMeta.textContent = "No se pudo activar la clase de hoy.";
+    return false;
   }
 }
 
@@ -83,11 +88,13 @@ async function detectLan() {
 }
 
 async function render() {
+  if (!active) return;
   const code = (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
   localStorage.setItem("classCode", code);
   localStorage.setItem("publicBase", publicBase.value.trim());
   if (!session || session.class_code !== code) {
-    await activateToday();
+    const ok = await activateToday();
+    if (!ok) return;
   }
   const w = windowIndex();
   const base = studentBase();
@@ -102,17 +109,31 @@ async function render() {
   link.textContent = url;
 }
 
+activateBtn.addEventListener("click", async () => {
+  activateBtn.disabled = true;
+  activateBtn.textContent = "Activando…";
+  const ok = await activateToday();
+  if (!ok) {
+    activateBtn.disabled = false;
+    activateBtn.textContent = "Activar QR";
+    return;
+  }
+  active = true;
+  qrLive.classList.remove("hidden");
+  activateBtn.textContent = "QR activo";
+  lastWindow = -1;
+  await render();
+});
+
 input.addEventListener("input", () => {
   lastWindow = -1;
   session = null;
-  render();
+  if (active) render();
 });
 publicBase.addEventListener("input", () => {
   lastWindow = -1;
-  render();
+  if (active) render();
 });
 
 await detectLan();
-await activateToday();
-render();
 setInterval(render, 250);

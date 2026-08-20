@@ -478,6 +478,64 @@ body.page-prueba {
   }
 }
 
+.thanks-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: #000;
+  color: var(--text);
+  text-align: center;
+  padding: 2rem 1.5rem;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+.thanks-kicker {
+  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ok);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.thanks-screen h2 {
+  margin: 0.55rem 0 0.9rem;
+  font-size: clamp(1.9rem, 8vw, 3rem);
+  line-height: 1.15;
+}
+
+.thanks-screen p {
+  margin: 0 auto;
+  max-width: 22rem;
+  color: var(--muted);
+  font-size: 1.08rem;
+  line-height: 1.45;
+}
+
+body.thanks-lock {
+  background: #000;
+  overflow: hidden;
+}
+
+body.thanks-lock .top,
+body.thanks-lock .layout,
+body.thanks-lock .footer-link {
+  display: none !important;
+}
+
+#activate-qr {
+  width: 100%;
+  min-height: 56px;
+  font-size: 1.2rem;
+  margin: 0.8rem 0 0.4rem;
+}
+
+.qr-live {
+  margin-top: 0.8rem;
+}
+
 .wrap.roster {
   max-width: 1080px;
 }

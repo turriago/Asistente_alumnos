@@ -4,24 +4,27 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>QR de la clase</title>
-  <link rel="stylesheet" href="css/app.css?v=13">
+  <link rel="stylesheet" href="css/app.css?v=14">
 </head>
 <body>
   <div class="wrap">
     <p class="eyebrow">Profesora · PC o celular</p>
-    <h1>QR de la prueba</h1>
+    <h1>Activar QR de la clase</h1>
     <section class="panel">
-      <p id="state-pill" class="pill">Rotando</p>
+      <p id="state-pill" class="pill">Listo para activar</p>
       <p id="warn" class="note warn hidden"></p>
       <label for="class-code">Código de clase (el mismo en todos los aparatos)</label>
       <input id="class-code" type="text" maxlength="32" autocomplete="off">
       <label for="public-base">Enlace que debe abrir el celular</label>
       <input id="public-base" type="url" autocomplete="off" placeholder="https://tu-sitio.netlify.app/">
-      <div class="qr-box"><canvas id="qr"></canvas></div>
-      <p class="muted">Este código caduca en <strong id="ttl">—</strong> s</p>
-      <p id="link" class="note"></p>
-      <p id="session-meta" class="roster-session">Activando la clase de hoy…</p>
-      <p class="muted">Proyecta esta pantalla. El estudiante solo escanea con la cámara del iPhone o Android.</p>
+      <button id="activate-qr" type="button">Activar QR</button>
+      <div id="qr-live" class="qr-live hidden">
+        <div class="qr-box"><canvas id="qr"></canvas></div>
+        <p class="muted">Este código caduca en <strong id="ttl">—</strong> s</p>
+        <p id="link" class="note"></p>
+        <p id="session-meta" class="roster-session"></p>
+        <p class="muted">Proyecta esta pantalla. El estudiante solo escanea con la cámara del iPhone o Android.</p>
+      </div>
       <p class="muted">Las fotos de la ficha salen del kiosco del PC. Ábrelo en este equipo y pulsa <strong>Enviar fotos al celular</strong>.</p>
     </section>
     <p class="actions">
@@ -29,6 +32,6 @@
       <a class="btn secondary" href="index.html">Volver</a>
     </p>
   </div>
-  <script type="module" src="js/profe.js?v=13"></script>
+  <script type="module" src="js/profe.js?v=14"></script>
 </body>
 </html>
