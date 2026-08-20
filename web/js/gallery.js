@@ -1,10 +1,47 @@
-const SIZE = 32;
+const SIZE = 64;
 
-export function fingerprintFromSource(source, sx, sy, sw, sh) {
+function equalizeAndNormalize(gray) {
+  const hist = new Float32Array(256);
+  for (let i = 0; i < gray.length; i += 1) {
+    const bin = Math.max(0, Math.min(255, gray[i] | 0));
+    hist[bin] += 1;
+  }
+  const cdf = new Float32Array(256);
+  let total = 0;
+  let cdfMin = 0;
+  for (let i = 0; i < 256; i += 1) {
+    total += hist[i];
+    cdf[i] = total;
+    if (!cdfMin && total) cdfMin = total;
+  }
+  const out = new Float32Array(gray.length);
+  const denom = Math.max(1, total - cdfMin);
+  for (let i = 0; i < gray.length; i += 1) {
+    const bin = Math.max(0, Math.min(255, gray[i] | 0));
+    out[i] = ((cdf[bin] - cdfMin) / denom) * 255;
+  }
+  let mean = 0;
+  for (let i = 0; i < out.length; i += 1) mean += out[i];
+  mean /= out.length || 1;
+  let norm = 0;
+  for (let i = 0; i < out.length; i += 1) {
+    out[i] -= mean;
+    norm += out[i] * out[i];
+  }
+  norm = Math.sqrt(norm) || 1;
+  for (let i = 0; i < out.length; i += 1) out[i] /= norm;
+  return out;
+}
+
+export function fingerprintFromSource(source, sx, sy, sw, sh, options = {}) {
   const canvas = document.createElement("canvas");
   canvas.width = SIZE;
   canvas.height = SIZE;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (options.flip) {
+    ctx.translate(SIZE, 0);
+    ctx.scale(-1, 1);
+  }
   ctx.drawImage(source, sx, sy, sw, sh, 0, 0, SIZE, SIZE);
   const { data } = ctx.getImageData(0, 0, SIZE, SIZE);
   const gray = new Float32Array(SIZE * SIZE);
@@ -12,17 +49,7 @@ export function fingerprintFromSource(source, sx, sy, sw, sh) {
     const o = i * 4;
     gray[i] = 0.299 * data[o] + 0.587 * data[o + 1] + 0.114 * data[o + 2];
   }
-  let mean = 0;
-  for (const value of gray) mean += value;
-  mean /= gray.length || 1;
-  let norm = 0;
-  for (let i = 0; i < gray.length; i += 1) {
-    gray[i] -= mean;
-    norm += gray[i] * gray[i];
-  }
-  norm = Math.sqrt(norm) || 1;
-  for (let i = 0; i < gray.length; i += 1) gray[i] /= norm;
-  return gray;
+  return equalizeAndNormalize(gray);
 }
 
 function cosine(left, right) {
@@ -31,36 +58,52 @@ function cosine(left, right) {
   return sum;
 }
 
+async function printFromUrl(url) {
+  const image = new Image();
+  image.crossOrigin = "anonymous";
+  image.src = url;
+  await image.decode();
+  return fingerprintFromSource(image, 0, 0, image.width, image.height);
+}
+
 export async function prepareGallery(students) {
   const prepared = [];
   for (const student of students) {
-    if (!student || !student.photo) continue;
-    const image = new Image();
-    image.crossOrigin = "anonymous";
-    image.src = student.photo;
-    try {
-      await image.decode();
-    } catch {
-      continue;
+    const urls = [...new Set([student.photo, ...(student.photos || [])].filter(Boolean))];
+    const prints = [];
+    for (const url of urls) {
+      try {
+        prints.push(await printFromUrl(url));
+      } catch {
+        /* CORS o imagen rota */
+      }
     }
+    if (!prints.length) continue;
     prepared.push({
       id: student.id,
       name: student.name,
       program: student.program || "",
       group: student.group || "",
-      photo: student.photo,
-      print: fingerprintFromSource(image, 0, 0, image.width, image.height),
+      photo: student.photo || urls[0],
+      prints,
     });
   }
   return prepared;
 }
 
-export function matchStudent(prepared, queryPrint) {
-  if (!prepared.length || !queryPrint) return null;
+export function matchStudent(prepared, queryPrints) {
+  const queries = (Array.isArray(queryPrints) ? queryPrints : [queryPrints]).filter(Boolean);
+  if (!prepared.length || !queries.length) return null;
   let best = null;
   let second = -1;
   for (const student of prepared) {
-    const score = cosine(queryPrint, student.print);
+    let score = -1;
+    for (const print of student.prints) {
+      for (const query of queries) {
+        const value = cosine(query, print);
+        if (value > score) score = value;
+      }
+    }
     if (!best || score > best.score) {
       second = best ? best.score : -1;
       best = { student, score };
@@ -68,8 +111,8 @@ export function matchStudent(prepared, queryPrint) {
       second = score;
     }
   }
-  if (!best || best.score < 0.84) return null;
-  if (second >= 0 && best.score - second < 0.025) return null;
+  if (!best || best.score < 0.62) return null;
+  if (second >= 0 && best.score - second < 0.02) return null;
   return best.student;
 }
 
@@ -93,7 +136,8 @@ async function fetchSupabaseGallery() {
     const students = [];
     for (const row of rows || []) {
       const media = row.student_media || [];
-      const card = media.find((item) => item.is_card) || media.find((item) => item.kind === "photo");
+      const images = media.filter((item) => item.kind === "card" || item.kind === "photo");
+      const card = images.find((item) => item.is_card) || images[0];
       if (!card || !card.public_url) continue;
       students.push({
         id: row.student_id,
@@ -101,6 +145,7 @@ async function fetchSupabaseGallery() {
         program: row.program || "",
         group: row.group_name || "",
         photo: card.public_url,
+        photos: images.map((item) => item.public_url).filter(Boolean),
       });
     }
     return students;

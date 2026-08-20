@@ -2,7 +2,7 @@ import { tokenIsValid } from "./token.js";
 import { NumberSmoother, readNumber } from "./fingers.js";
 import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
-import { fetchGallery, fingerprintFromSource, matchStudent, prepareGallery } from "./gallery.js";
+import { fetchGallery, fingerprintFromSource, matchStudent, prepareGallery } from "./gallery.js?v=8";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -231,14 +231,14 @@ function tick() {
   } else {
     if (hasFace && detections[0] && detections[0].boundingBox) {
       const box = detections[0].boundingBox;
-      const query = fingerprintFromSource(
-        video,
-        box.originX,
-        box.originY,
-        box.width,
-        box.height,
-      );
-      matched = matchStudent(gallery, query);
+      const pad = Math.max(box.width, box.height) * 0.2;
+      const sx = Math.max(0, box.originX - pad);
+      const sy = Math.max(0, box.originY - pad);
+      const sw = Math.min(video.videoWidth - sx, box.width + pad * 2);
+      const sh = Math.min(video.videoHeight - sy, box.height + pad * 2);
+      const query = fingerprintFromSource(video, sx, sy, sw, sh);
+      const queryFlip = fingerprintFromSource(video, sx, sy, sw, sh, { flip: true });
+      matched = matchStudent(gallery, [query, queryFlip]);
     } else {
       matched = null;
     }
@@ -254,7 +254,7 @@ function tick() {
     next.textContent = ready
       ? "Pulsa Iniciar prueba para los 3 números aleatorios."
       : (hasFace
-        ? "Ponte de frente. Si no sale tu ficha, en el PC pulsa Enviar fotos al celular."
+        ? "Ponte de frente, con la misma luz que en la foto de enrolamiento."
         : "Pulsa Permitir cámara y ponte frente al teléfono.");
     numberEl.textContent = gesture != null ? String(gesture) : "—";
     startBtn.disabled = !ready;
