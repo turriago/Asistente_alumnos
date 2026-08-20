@@ -26,6 +26,33 @@ export function colombiaToday(now = new Date()) {
   }).format(now);
 }
 
+export function formatColombiaClock(now = new Date()) {
+  return now.toLocaleTimeString("es-CO", {
+    timeZone: BOGOTA,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+export function noonMs(sessionDate) {
+  const day = sessionDate || colombiaToday();
+  return new Date(day + "T12:00:00-05:00").getTime();
+}
+
+export function isDayArchived(sessionDate, now = Date.now()) {
+  const day = sessionDate || colombiaToday(new Date(now));
+  return now >= noonMs(day);
+}
+
+export function passesBeforeNoon(passes, sessionDate) {
+  const cutoff = noonMs(sessionDate);
+  return (passes || []).filter((row) => {
+    const stamp = new Date(row.passed_at).getTime();
+    return Number.isFinite(stamp) && stamp < cutoff;
+  });
+}
+
 export function formatColombiaTime(iso) {
   if (!iso) return "";
   const date = new Date(iso);
@@ -136,7 +163,9 @@ export async function fetchSessions(classCode) {
 export async function recordPass({ id, name, classCode, source, sessionDate }) {
   const studentId = String(id || "").trim();
   if (!studentId || !SUPABASE_URL || !SUPABASE_ANON_KEY) return false;
-  const session = await ensureSession(classCode || "aula1", sessionDate);
+  const day = sessionDate || colombiaToday();
+  if (isDayArchived(day)) return false;
+  const session = await ensureSession(classCode || "aula1", day);
   if (!session) return false;
   const response = await fetch(restUrl("attendance"), {
     method: "POST",
@@ -180,8 +209,10 @@ export async function fetchRoster(classCode, session) {
     await fetch(passesUrl, { cache: "no-store", headers: headers() }),
     "No se pudo leer la asistencia.",
   );
-  const split = splitRoster(students || [], passes || []);
-  return { ...split, students: students || [], open: true };
+  const archived = isDayArchived(session.session_date);
+  const morning = archived ? passesBeforeNoon(passes || [], session.session_date) : passes || [];
+  const split = splitRoster(students || [], morning);
+  return { ...split, students: students || [], open: true, archived };
 }
 
 export function cardUrl(student) {

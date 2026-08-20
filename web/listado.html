@@ -4,13 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Listado de asistencia</title>
-  <link rel="stylesheet" href="css/app.css?v=15">
+  <link rel="stylesheet" href="css/app.css?v=16">
 </head>
 <body class="page-listado">
   <div class="wrap roster">
     <p class="eyebrow">Profesora · una clase por semana</p>
     <h1>Asistencia del día</h1>
-    <p class="muted">Cada vez que activas el QR se abre el día: fecha, hora, quiénes fueron y quiénes faltaron. Puedes bajar el Excel o compartirlo.</p>
+    <p class="muted">La clase de la mañana se archiva sola a las 12:00 p. m. hora Colombia. En curso vuelve a 0 y queda guardado quiénes fueron y quiénes faltaron.</p>
+    <p id="colombia-clock" class="colombia-clock">Hora Colombia: —</p>
     <p class="actions">
       <a class="btn" href="profe.html">Activar QR</a>
     </p>
@@ -30,7 +31,7 @@
 
     <section id="stats" class="stats" hidden>
       <article class="stat ok">
-        <p class="stat-label">Fueron</p>
+        <p class="stat-label">En curso</p>
         <p id="count-present" class="stat-value">0</p>
       </article>
       <article class="stat wait">
@@ -43,6 +44,7 @@
       </article>
     </section>
     <p id="summary" class="roster-summary" hidden></p>
+    <p id="archive-banner" class="archive-banner hidden">En curso: 0 presentes. El día se archivó a las 12:00 p. m. hora Colombia.</p>
 
     <p class="actions export-actions">
       <button id="preview-day" type="button">Ver Excel antes de descargar</button>
@@ -61,12 +63,12 @@
 
     <div class="roster-grid">
       <section class="panel roster-col">
-        <h2>Presentes</h2>
+        <h2 id="present-heading">Presentes</h2>
         <p id="present-empty" class="muted">Aún nadie ha pasado la prueba.</p>
         <div id="present-list" class="person-list"></div>
       </section>
       <section class="panel roster-col">
-        <h2>No asistieron</h2>
+        <h2 id="missing-heading">No asistieron</h2>
         <p id="missing-empty" class="muted">Nadie pendiente.</p>
         <div id="missing-list" class="person-list"></div>
       </section>
@@ -82,6 +84,6 @@
     <p id="photo-zoom-name"></p>
     <button id="photo-zoom-close" type="button" class="secondary">Cerrar</button>
   </div>
-  <script type="module" src="js/listado.js?v=15"></script>
+  <script type="module" src="js/listado.js?v=16"></script>
 </body>
 </html>

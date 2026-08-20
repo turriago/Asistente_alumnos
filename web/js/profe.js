@@ -1,6 +1,14 @@
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 import { currentToken, remainingMs, studentUrl, windowIndex } from "./token.js";
-import { ensureSession, formatColombiaDate, formatColombiaTime } from "./attendance.js";
+import {
+  colombiaToday,
+  ensureSession,
+  formatColombiaClock,
+  formatColombiaDate,
+  formatColombiaTime,
+  isDayArchived,
+  noonMs,
+} from "./attendance.js";
 
 const input = document.getElementById("class-code");
 const publicBase = document.getElementById("public-base");
@@ -17,6 +25,7 @@ const qrBox = document.getElementById("qr-box");
 const countdownEl = document.getElementById("qr-countdown");
 const activatedAtEl = document.getElementById("activated-at");
 const expiredNote = document.getElementById("expired-note");
+const clockEl = document.getElementById("colombia-clock");
 const DEFAULT_CODE = "aula1";
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
@@ -83,10 +92,11 @@ function showTimes() {
   }
 }
 
-function deactivate() {
+function deactivate(reason) {
   active = false;
   qrBox.classList.add("expired");
   expiredNote.classList.remove("hidden");
+  expiredNote.textContent = reason || "El tiempo se acabó. El QR ya no sirve. Actívalo otra vez si quieres más minutos.";
   countdownEl.textContent = "Tiempo agotado · 0:00";
   statePill.textContent = "QR cerrado";
   statePill.className = "pill bad";
@@ -127,7 +137,12 @@ async function detectLan() {
 }
 
 async function render() {
+  if (clockEl) clockEl.textContent = "Hora Colombia: " + formatColombiaClock();
   if (!active) return;
+  if (isDayArchived(session && session.session_date)) {
+    deactivate("Ya son las 12:00 p. m. hora Colombia. El día se archivó y los presentes del en curso volvieron a 0.");
+    return;
+  }
   if (expiresAt && Date.now() >= expiresAt) {
     deactivate();
     return;
@@ -157,6 +172,14 @@ async function render() {
 activateBtn.addEventListener("click", async () => {
   activateBtn.disabled = true;
   activateBtn.textContent = "Activando…";
+  if (isDayArchived(colombiaToday())) {
+    activateBtn.disabled = false;
+    activateBtn.textContent = "Activar QR";
+    statePill.textContent = "Día archivado";
+    statePill.className = "pill bad";
+    sessionMeta.textContent = "Ya pasaron las 12:00 p. m. hora Colombia. La asistencia de la mañana quedó archivada.";
+    return;
+  }
   const ok = await activateToday();
   if (!ok) {
     activateBtn.disabled = false;
@@ -164,7 +187,7 @@ activateBtn.addEventListener("click", async () => {
     return;
   }
   activatedAt = new Date();
-  expiresAt = Date.now() + minutes() * 60 * 1000;
+  expiresAt = Math.min(Date.now() + minutes() * 60 * 1000, noonMs(colombiaToday()));
   active = true;
   qrLive.classList.remove("hidden");
   qrBox.classList.remove("expired");

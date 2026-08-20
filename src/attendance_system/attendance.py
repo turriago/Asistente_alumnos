@@ -36,6 +36,31 @@ def colombia_today(now: datetime | None = None) -> str:
     return stamp.astimezone(BOGOTA).date().isoformat()
 
 
+def noon_on(session_date: str) -> datetime:
+    year, month, day = (int(part) for part in session_date.split("-"))
+    return datetime(year, month, day, 12, 0, 0, tzinfo=BOGOTA)
+
+
+def is_day_archived(session_date: str, now: datetime | None = None) -> bool:
+    stamp = now or datetime.now(BOGOTA)
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=BOGOTA)
+    return stamp.astimezone(BOGOTA) >= noon_on(session_date)
+
+
+def passes_before_noon(passes: list[dict[str, Any]], session_date: str) -> list[dict[str, Any]]:
+    cutoff = noon_on(session_date)
+    kept: list[dict[str, Any]] = []
+    for row in passes:
+        raw = str(row.get("passed_at") or "")
+        if not raw:
+            continue
+        stamp = datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(BOGOTA)
+        if stamp < cutoff:
+            kept.append(row)
+    return kept
+
+
 def format_colombia_time(iso: str | None) -> str:
     if not iso:
         return ""
@@ -242,7 +267,11 @@ def record_pass(
 ) -> bool:
     if not student_id:
         return False
-    session = ensure_session(config, session_date=session_date)
+    day = session_date or colombia_today()
+    if is_day_archived(day):
+        logger.info("No se registra asistencia: el día %s ya se archivó a las 12:00.", day)
+        return False
+    session = ensure_session(config, session_date=day)
     if not session:
         return False
     base, token = _creds()

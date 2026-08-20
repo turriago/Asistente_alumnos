@@ -4,8 +4,10 @@ import {
   fetchRoster,
   fetchSession,
   fetchSessions,
+  formatColombiaClock,
   formatColombiaDate,
   formatColombiaTime,
+  isDayArchived,
 } from "./attendance.js";
 import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
 
@@ -34,6 +36,10 @@ const zoom = document.getElementById("photo-zoom");
 const zoomImg = document.getElementById("photo-zoom-img");
 const zoomName = document.getElementById("photo-zoom-name");
 const zoomClose = document.getElementById("photo-zoom-close");
+const clockEl = document.getElementById("colombia-clock");
+const archiveBanner = document.getElementById("archive-banner");
+const presentHeading = document.getElementById("present-heading");
+const missingHeading = document.getElementById("missing-heading");
 
 input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
 
@@ -41,6 +47,7 @@ let currentSession = null;
 let currentPresent = [];
 let currentMissing = [];
 let currentStudents = [];
+let dayArchived = false;
 
 function classCode() {
   return (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
@@ -131,7 +138,10 @@ function fillSessionSelect(sessions, selectedDate) {
     const option = document.createElement("option");
     option.value = session.session_date;
     option.textContent =
-      formatColombiaDate(session.session_date) + " · " + formatColombiaTime(session.started_at);
+      formatColombiaDate(session.session_date) +
+      " · " +
+      formatColombiaTime(session.started_at) +
+      (isDayArchived(session.session_date) ? " · archivado" : "");
     sessionSelect.append(option);
   }
   const wanted = selectedDate || today;
@@ -154,11 +164,14 @@ async function load() {
     currentPresent = roster.present;
     currentMissing = roster.missing;
     currentStudents = roster.students;
+    dayArchived = Boolean(roster.archived);
+    const livePresent = dayArchived ? 0 : currentPresent.length;
+    const liveMissing = dayArchived ? 0 : currentMissing.length;
     const total = currentPresent.length + currentMissing.length;
-    document.getElementById("count-present").textContent = String(currentPresent.length);
-    document.getElementById("count-missing").textContent = String(currentMissing.length);
-    document.getElementById("count-total").textContent = String(total);
-    statsEl.hidden = !roster.open || total === 0;
+    document.getElementById("count-present").textContent = String(livePresent);
+    document.getElementById("count-missing").textContent = String(liveMissing);
+    document.getElementById("count-total").textContent = String(currentStudents.length || total);
+    statsEl.hidden = !roster.open;
     summaryEl.hidden = !roster.open;
     presentList.replaceChildren();
     missingList.replaceChildren();
@@ -167,6 +180,7 @@ async function load() {
       downloadDayBtn.disabled = true;
       shareDayBtn.disabled = true;
       previewBtn.disabled = true;
+      archiveBanner.classList.add("hidden");
       sessionMeta.textContent = "Hoy todavía no se activó el QR. Ábrelo para registrar fecha y hora de esta clase.";
       summaryEl.hidden = true;
       presentEmpty.hidden = false;
@@ -182,11 +196,29 @@ async function load() {
       formatColombiaDate(currentSession.session_date) +
       " · QR activado a las " +
       formatColombiaTime(currentSession.started_at);
-    if (total) {
-      summaryEl.textContent =
-        `${currentPresent.length} de ${total} fueron. Faltaron ${currentMissing.length}.`;
+    presentHeading.textContent = dayArchived ? "Archivo · presentes" : "Presentes";
+    missingHeading.textContent = dayArchived ? "Archivo · no asistieron" : "No asistieron";
+    if (dayArchived) {
+      archiveBanner.classList.remove("hidden");
+      archiveBanner.textContent =
+        "En curso: 0 presentes. Día archivado a las 12:00 p. m. hora Colombia · " +
+        currentPresent.length +
+        " fueron y " +
+        currentMissing.length +
+        " faltaron.";
+      summaryEl.textContent = "El listado de abajo es el archivo de la mañana. Ya no entra nadie más hoy.";
+      livePill.textContent = "Archivado";
+      livePill.className = "pill";
     } else {
-      summaryEl.textContent = "La clase está abierta. Aún nadie ha pasado la prueba.";
+      archiveBanner.classList.add("hidden");
+      if (total) {
+        summaryEl.textContent =
+          `${currentPresent.length} de ${total} fueron. Faltaron ${currentMissing.length}.`;
+      } else {
+        summaryEl.textContent = "La clase está abierta. Aún nadie ha pasado la prueba.";
+      }
+      livePill.textContent = "En vivo";
+      livePill.className = "pill ok";
     }
     presentEmpty.hidden = currentPresent.length > 0;
     missingEmpty.hidden = currentMissing.length > 0;
@@ -210,9 +242,9 @@ async function load() {
     downloadDayBtn.disabled = false;
     shareDayBtn.disabled = false;
     previewBtn.disabled = false;
-    statusEl.textContent = "Clase " + code + " · se actualiza sola cada 3 segundos.";
-    livePill.textContent = "En vivo";
-    livePill.className = "pill ok";
+    statusEl.textContent = dayArchived
+      ? "Clase " + code + " · archivada a las 12:00 p. m. hora Colombia."
+      : "Clase " + code + " · se actualiza sola cada 3 segundos.";
     if (!previewPanel.classList.contains("hidden")) renderPreview();
   } catch (err) {
     livePill.textContent = "Sin conexión";
@@ -262,5 +294,12 @@ input.addEventListener("change", () => {
 });
 sessionSelect.addEventListener("change", load);
 refreshBtn.addEventListener("click", load);
+function tickClock() {
+  if (clockEl) clockEl.textContent = "Hora Colombia: " + formatColombiaClock();
+  const closed = currentSession && isDayArchived(currentSession.session_date);
+  if (closed && !dayArchived) load();
+}
+tickClock();
 load();
 setInterval(load, 3000);
+setInterval(tickClock, 1000);

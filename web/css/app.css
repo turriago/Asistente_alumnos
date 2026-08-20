@@ -725,6 +725,23 @@ select {
   color: var(--muted);
 }
 
+.colombia-clock {
+  margin: 0.35rem 0 0.8rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--wait);
+}
+
+.archive-banner {
+  margin: 0.8rem 0 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: #3d3420;
+  color: var(--wait);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .activated-at {
   margin: 0.2rem 0 0.35rem;
   font-size: 1.2rem;

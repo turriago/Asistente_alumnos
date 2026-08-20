@@ -88,3 +88,19 @@ def test_university_template_keeps_official_headers() -> None:
     assert rows[0] == UNIVERSITY_HEADERS
     assert rows[1][0] == "TMP-0004"
     assert rows[1][3] == ""
+
+
+def test_day_archives_at_noon_colombia() -> None:
+    from attendance_system.attendance import BOGOTA, is_day_archived, passes_before_noon
+
+    day = "2026-08-20"
+    assert is_day_archived(day, datetime(2026, 8, 20, 11, 59, 59, tzinfo=BOGOTA)) is False
+    assert is_day_archived(day, datetime(2026, 8, 20, 12, 0, 0, tzinfo=BOGOTA)) is True
+    morning = passes_before_noon(
+        [
+            {"student_id": "TMP-0004", "passed_at": "2026-08-20T16:10:00+00:00"},
+            {"student_id": "TMP-0001", "passed_at": "2026-08-20T17:05:00+00:00"},
+        ],
+        day,
+    )
+    assert [row["student_id"] for row in morning] == ["TMP-0004"]
