@@ -9,10 +9,12 @@ export async function loadFaceApi() {
   if (ready) return true;
   const mod = await import("https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.esm.js");
   faceapi = mod.default || mod;
-  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
-  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-  options = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.35 });
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+  ]);
+  options = new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.35 });
   ready = true;
   return true;
 }
@@ -38,18 +40,18 @@ async function descriptorFromImage(url) {
 export async function buildDescriptors(students) {
   const labeled = [];
   if (!ready) return labeled;
-  for (const student of students) {
-    const urls = [...new Set([student.photo, ...(student.photos || [])].filter(Boolean))];
-    const descriptors = [];
-    for (const url of urls.slice(0, 4)) {
-      try {
-        const vector = await descriptorFromImage(url);
-        if (vector) descriptors.push(vector);
-      } catch {
-        /* foto sin rostro detectable */
-      }
+  const jobs = (students || []).map(async (student) => {
+    if (!student || !student.photo) return null;
+    try {
+      const vector = await descriptorFromImage(student.photo);
+      if (!vector) return null;
+      return { student, descriptors: [vector] };
+    } catch {
+      return null;
     }
-    if (descriptors.length) labeled.push({ student, descriptors });
+  });
+  for (const item of await Promise.all(jobs)) {
+    if (item) labeled.push(item);
   }
   return labeled;
 }

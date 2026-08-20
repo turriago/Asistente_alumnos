@@ -9,17 +9,19 @@ export async function createTrackers() {
     "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/+esm"
   );
   const vision = await FilesetResolver.forVisionTasks(VISION_WASM);
-  const hands = await HandLandmarker.createFromOptions(vision, {
-    baseOptions: { modelAssetPath: HAND_MODEL },
-    runningMode: "VIDEO",
-    numHands: 2,
-    minHandDetectionConfidence: 0.4,
-    minHandPresenceConfidence: 0.4,
-    minTrackingConfidence: 0.5,
-  });
-  const faces = await FaceDetector.createFromOptions(vision, {
-    baseOptions: { modelAssetPath: FACE_MODEL },
-    runningMode: "VIDEO",
-  });
+  const [hands, faces] = await Promise.all([
+    HandLandmarker.createFromOptions(vision, {
+      baseOptions: { modelAssetPath: HAND_MODEL },
+      runningMode: "VIDEO",
+      numHands: 2,
+      minHandDetectionConfidence: 0.4,
+      minHandPresenceConfidence: 0.4,
+      minTrackingConfidence: 0.5,
+    }),
+    FaceDetector.createFromOptions(vision, {
+      baseOptions: { modelAssetPath: FACE_MODEL },
+      runningMode: "VIDEO",
+    }),
+  ]);
   return { hands, faces };
 }

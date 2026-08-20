@@ -67,28 +67,16 @@ async function printFromUrl(url) {
 }
 
 export async function prepareGallery(students) {
-  const prepared = [];
-  for (const student of students) {
-    const urls = [...new Set([student.photo, ...(student.photos || [])].filter(Boolean))];
-    const prints = [];
-    for (const url of urls) {
-      try {
-        prints.push(await printFromUrl(url));
-      } catch {
-        /* CORS o imagen rota */
-      }
-    }
-    if (!prints.length) continue;
-    prepared.push({
+  return (students || [])
+    .filter((student) => student && student.photo)
+    .map((student) => ({
       id: student.id,
       name: student.name,
       program: student.program || "",
       group: student.group || "",
-      photo: student.photo || urls[0],
-      prints,
-    });
-  }
-  return prepared;
+      photo: student.photo,
+      photos: student.photos || [student.photo],
+    }));
 }
 
 export function matchStudent(prepared, queryPrints) {

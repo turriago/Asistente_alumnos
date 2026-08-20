@@ -2,8 +2,8 @@ import { tokenIsValid } from "./token.js";
 import { NumberSmoother, readNumber } from "./fingers.js";
 import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
-import { fetchGallery, prepareGallery } from "./gallery.js?v=10";
-import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=10";
+import { fetchGallery, prepareGallery } from "./gallery.js?v=11";
+import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=11";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -42,6 +42,13 @@ let matched = null;
 let labeledFaces = [];
 let recognizeTimer = 0;
 let missedMatches = 0;
+let trackersPromise = null;
+let faceApiPromise = null;
+
+function preloadModels() {
+  if (!trackersPromise) trackersPromise = createTrackers();
+  if (!faceApiPromise) faceApiPromise = loadFaceApi();
+}
 
 function showCard(hasPerson) {
   if (!hasPerson) {
@@ -320,26 +327,33 @@ async function startCamera() {
   if (!valid) return;
   camBtn.disabled = true;
   try {
-    next.textContent = "Cargando cámara y modelos…";
+    next.textContent = "Abriendo cámara…";
     await openCamera();
-    const trackers = await createTrackers();
-    facesTracker = trackers.faces;
-    handsTracker = trackers.hands;
     camBtn.classList.add("hidden");
     placeholder.classList.add("hidden");
-    const galleryCode = classCode || "aula1";
-    gallery = await prepareGallery(await fetchGallery(galleryCode));
-    next.textContent = "Cargando reconocedor de rostros…";
+    setPill("Cámara", "ok");
+    headline.textContent = "Cámara lista";
+    next.textContent = "Cargando detección…";
+    preloadModels();
+    const trackers = await trackersPromise;
+    facesTracker = trackers.faces;
+    handsTracker = trackers.hands;
+    requestAnimationFrame(tick);
+    if (!gallery.length) {
+      gallery = await prepareGallery(await fetchGallery(classCode || "aula1"));
+    }
+    next.textContent = "Cargando reconocimiento…";
     try {
-      await loadFaceApi();
+      await faceApiPromise;
       labeledFaces = await buildDescriptors(gallery);
+      startRecognizer();
     } catch (err) {
       console.error(err);
       labeledFaces = [];
     }
     setPill(gallery.length ? "Listo" : "Sin fotos", gallery.length ? "ok" : "waiting");
-    startRecognizer();
-    requestAnimationFrame(tick);
+    headline.textContent = "Esperando un rostro";
+    next.textContent = "Mira de frente a la cámara.";
   } catch (err) {
     camBtn.disabled = false;
     setPill("Cámara", "bad");
@@ -357,6 +371,7 @@ async function main() {
   next.textContent = "Pulsa Permitir cámara. El navegador lo pide al tocar el botón.";
   const galleryCode = classCode || "aula1";
   gallery = await prepareGallery(await fetchGallery(galleryCode));
+  preloadModels();
 }
 
 main();
