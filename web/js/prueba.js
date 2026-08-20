@@ -2,8 +2,8 @@ import { tokenIsValid } from "./token.js";
 import { NumberSmoother, readNumber } from "./fingers.js";
 import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
-import { fetchGallery, prepareGallery } from "./gallery.js?v=9";
-import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=9";
+import { fetchGallery, prepareGallery } from "./gallery.js?v=10";
+import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=10";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -22,7 +22,6 @@ const nameEl = document.getElementById("name");
 const sidEl = document.getElementById("sid");
 const programEl = document.getElementById("program");
 const card = document.getElementById("card");
-const galleryStrip = document.getElementById("gallery-strip");
 const ctx = overlay.getContext("2d", { alpha: true });
 
 const params = new URLSearchParams(location.search);
@@ -43,25 +42,6 @@ let matched = null;
 let labeledFaces = [];
 let recognizeTimer = 0;
 let missedMatches = 0;
-
-function renderGalleryStrip(students) {
-  galleryStrip.innerHTML = "";
-  if (!students.length) {
-    galleryStrip.classList.add("hidden");
-    return;
-  }
-  galleryStrip.classList.remove("hidden");
-  for (const student of students) {
-    const img = document.createElement("img");
-    img.src = student.photo;
-    img.alt = student.name || student.id;
-    img.title = student.name || student.id;
-    img.addEventListener("click", () => {
-      matched = student;
-    });
-    galleryStrip.appendChild(img);
-  }
-}
 
 function showCard(hasPerson) {
   if (!hasPerson) {
@@ -270,7 +250,7 @@ function tick() {
     next.textContent = ready
       ? "Pulsa Iniciar prueba para los 3 números aleatorios."
       : (hasFace
-        ? "Mira de frente. Si no sale tu nombre, toca tu foto de abajo."
+        ? "Mira de frente a la cámara."
         : "Pulsa Permitir cámara y ponte frente al teléfono.");
     numberEl.textContent = gesture != null ? String(gesture) : "—";
     startBtn.disabled = !ready;
@@ -349,7 +329,6 @@ async function startCamera() {
     placeholder.classList.add("hidden");
     const galleryCode = classCode || "aula1";
     gallery = await prepareGallery(await fetchGallery(galleryCode));
-    renderGalleryStrip(gallery);
     next.textContent = "Cargando reconocedor de rostros…";
     try {
       await loadFaceApi();
@@ -378,7 +357,6 @@ async function main() {
   next.textContent = "Pulsa Permitir cámara. El navegador lo pide al tocar el botón.";
   const galleryCode = classCode || "aula1";
   gallery = await prepareGallery(await fetchGallery(galleryCode));
-  renderGalleryStrip(gallery);
 }
 
 main();
