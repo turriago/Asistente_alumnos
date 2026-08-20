@@ -95,6 +95,7 @@ html, body {
   object-fit: cover;
   background: #0b1220;
   flex: 0 0 auto;
+  cursor: pointer;
 }
 
 .name {

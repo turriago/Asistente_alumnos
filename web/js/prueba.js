@@ -2,7 +2,8 @@ import { tokenIsValid } from "./token.js";
 import { NumberSmoother, readNumber } from "./fingers.js";
 import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
-import { fetchGallery, fingerprintFromSource, matchStudent, prepareGallery } from "./gallery.js?v=8";
+import { fetchGallery, prepareGallery } from "./gallery.js?v=9";
+import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=9";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");
@@ -39,6 +40,9 @@ let hasFace = false;
 let running = true;
 let gallery = [];
 let matched = null;
+let labeledFaces = [];
+let recognizeTimer = 0;
+let missedMatches = 0;
 
 function renderGalleryStrip(students) {
   galleryStrip.innerHTML = "";
@@ -52,6 +56,9 @@ function renderGalleryStrip(students) {
     img.src = student.photo;
     img.alt = student.name || student.id;
     img.title = student.name || student.id;
+    img.addEventListener("click", () => {
+      matched = student;
+    });
     galleryStrip.appendChild(img);
   }
 }
@@ -141,14 +148,22 @@ async function openCamera() {
   video.setAttribute("playsinline", "true");
   video.setAttribute("autoplay", "true");
   video.muted = true;
-  const stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: {
-      facingMode: { ideal: "user" },
-      width: { ideal: 1280 },
-      height: { ideal: 960 },
-    },
-  });
+  const tries = [
+    { audio: false, video: { facingMode: "user" } },
+    { audio: false, video: true },
+    { audio: false, video: { width: 640, height: 480 } },
+  ];
+  let lastError = null;
+  let stream = null;
+  for (const constraints of tries) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+      break;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  if (!stream) throw lastError || new Error("camara");
   video.srcObject = stream;
   await new Promise((resolve, reject) => {
     video.onloadedmetadata = () => resolve();
@@ -157,6 +172,20 @@ async function openCamera() {
   });
   await video.play();
   placeholder.classList.add("hidden");
+}
+
+function cameraHelp(err) {
+  const name = err && err.name;
+  if (name === "NotReadableError" || name === "TrackStartError") {
+    return "La webcam está ocupada. Cierra el kiosco del PC (la ventana negra de python) y la app Cámara de Windows. Luego pulsa Permitir cámara otra vez.";
+  }
+  if (name === "NotAllowedError" || name === "PermissionDeniedError") {
+    return "El navegador bloqueó la cámara. En la barra de dirección, permite la cámara para este sitio.";
+  }
+  if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+    return "No se encontró ninguna cámara en este PC.";
+  }
+  return "Pulsa Permitir cámara y acepta el permiso. En el PC cierra el kiosco si sigue fallando.";
 }
 
 function drawBoxes(detections, hands) {
@@ -229,19 +258,6 @@ function tick() {
     numberEl.classList.remove("hidden");
     startBtn.disabled = true;
   } else {
-    if (hasFace && detections[0] && detections[0].boundingBox) {
-      const box = detections[0].boundingBox;
-      const pad = Math.max(box.width, box.height) * 0.2;
-      const sx = Math.max(0, box.originX - pad);
-      const sy = Math.max(0, box.originY - pad);
-      const sw = Math.min(video.videoWidth - sx, box.width + pad * 2);
-      const sh = Math.min(video.videoHeight - sy, box.height + pad * 2);
-      const query = fingerprintFromSource(video, sx, sy, sw, sh);
-      const queryFlip = fingerprintFromSource(video, sx, sy, sw, sh, { flip: true });
-      matched = matchStudent(gallery, [query, queryFlip]);
-    } else {
-      matched = null;
-    }
     const identified = Boolean(hasFace && matched);
     const ready = gallery.length ? identified : hasFace;
     setPill(
@@ -254,7 +270,7 @@ function tick() {
     next.textContent = ready
       ? "Pulsa Iniciar prueba para los 3 números aleatorios."
       : (hasFace
-        ? "Ponte de frente, con la misma luz que en la foto de enrolamiento."
+        ? "Mira de frente. Si no sale tu nombre, toca tu foto de abajo."
         : "Pulsa Permitir cámara y ponte frente al teléfono.");
     numberEl.textContent = gesture != null ? String(gesture) : "—";
     startBtn.disabled = !ready;
@@ -290,6 +306,28 @@ againBtn.addEventListener("click", () => {
   requestAnimationFrame(tick);
 });
 
+function startRecognizer() {
+  if (recognizeTimer) clearInterval(recognizeTimer);
+  recognizeTimer = window.setInterval(async () => {
+    if (!running || !labeledFaces.length || video.readyState < 2) return;
+    try {
+      const hit = await matchVideo(video, labeledFaces);
+      if (hit) {
+        matched = hit;
+        missedMatches = 0;
+      } else if (!hasFace) {
+        matched = null;
+        missedMatches = 0;
+      } else {
+        missedMatches += 1;
+        if (missedMatches >= 6) matched = null;
+      }
+    } catch {
+      /* un frame falló */
+    }
+  }, 450);
+}
+
 async function startCamera() {
   if (!window.isSecureContext) {
     setPill("Sin https", "bad");
@@ -312,13 +350,22 @@ async function startCamera() {
     const galleryCode = classCode || "aula1";
     gallery = await prepareGallery(await fetchGallery(galleryCode));
     renderGalleryStrip(gallery);
+    next.textContent = "Cargando reconocedor de rostros…";
+    try {
+      await loadFaceApi();
+      labeledFaces = await buildDescriptors(gallery);
+    } catch (err) {
+      console.error(err);
+      labeledFaces = [];
+    }
     setPill(gallery.length ? "Listo" : "Sin fotos", gallery.length ? "ok" : "waiting");
+    startRecognizer();
     requestAnimationFrame(tick);
   } catch (err) {
     camBtn.disabled = false;
     setPill("Cámara", "bad");
     headline.textContent = "No se pudo abrir la cámara";
-    next.textContent = "Pulsa Permitir cámara y acepta el permiso. Si la barra dice No seguro, hace falta https.";
+    next.textContent = cameraHelp(err);
     console.error(err);
   }
 }
