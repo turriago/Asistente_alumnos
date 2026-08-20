@@ -134,7 +134,7 @@ button.secondary, .btn.secondary {
   color: var(--ok);
 }
 
-video, canvas {
+video {
   width: 100%;
   border-radius: 12px;
   background: #05080f;
@@ -150,6 +150,8 @@ video, canvas {
 
 .stage video {
   display: block;
+  position: relative;
+  z-index: 0;
   width: 100%;
   min-height: 240px;
   object-fit: cover;
@@ -159,9 +161,11 @@ video, canvas {
 .stage canvas {
   position: absolute;
   inset: 0;
+  z-index: 1;
   width: 100%;
   height: 100%;
   pointer-events: none;
+  background: transparent;
 }
 
 .cam-placeholder {
@@ -176,6 +180,7 @@ video, canvas {
   font-size: 1.05rem;
   line-height: 1.45;
   pointer-events: none;
+  z-index: 1;
 }
 
 .note.warn {

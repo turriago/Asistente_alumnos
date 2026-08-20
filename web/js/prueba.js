@@ -14,7 +14,7 @@ const success = document.getElementById("success");
 const video = document.getElementById("cam");
 const overlay = document.getElementById("overlay");
 const placeholder = document.getElementById("cam-placeholder");
-const ctx = overlay.getContext("2d");
+const ctx = overlay.getContext("2d", { alpha: true });
 
 const params = new URLSearchParams(location.search);
 const classCode = params.get("c") || "";
