@@ -13,6 +13,7 @@ const againBtn = document.getElementById("again");
 const success = document.getElementById("success");
 const video = document.getElementById("cam");
 const overlay = document.getElementById("overlay");
+const placeholder = document.getElementById("cam-placeholder");
 const ctx = overlay.getContext("2d");
 
 const params = new URLSearchParams(location.search);
@@ -56,12 +57,21 @@ async function ensureToken() {
 }
 
 async function openCamera() {
+  video.setAttribute("playsinline", "true");
+  video.setAttribute("autoplay", "true");
+  video.muted = true;
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: false,
-    video: { facingMode: "user", width: { ideal: 720 }, height: { ideal: 720 } },
+    video: { facingMode: "user" },
   });
   video.srcObject = stream;
+  await new Promise((resolve, reject) => {
+    video.onloadedmetadata = () => resolve();
+    video.onerror = () => reject(new Error("video"));
+    setTimeout(() => resolve(), 2000);
+  });
   await video.play();
+  placeholder.classList.add("hidden");
 }
 
 function drawBoxes(detections, hands) {
@@ -183,6 +193,7 @@ async function startCamera() {
     facesTracker = trackers.faces;
     handsTracker = trackers.hands;
     camBtn.classList.add("hidden");
+    placeholder.classList.add("hidden");
     setPill("Listo", "ok");
     requestAnimationFrame(tick);
   } catch (err) {
