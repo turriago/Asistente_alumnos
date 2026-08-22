@@ -66,12 +66,12 @@ hands:
   min_foreground_face: 0.9
 
 challenge:
-  # Tres números aleatorios seguidos. Cada uno distinto al anterior.
+  # Tres números consecutivos (1-2-3, 2-3-4 o 3-4-5). Una sola mano.
   sequence_length: 3
   timeout_seconds: 12
   cooldown_seconds: 8
   min_number: 1
-  max_number: 10
+  max_number: 5
 
 database:
   path: data/attendance.db

@@ -1,7 +1,7 @@
 import { tokenIsValid } from "./token.js";
-import { NumberSmoother, readNumber } from "./fingers.js";
-import { Challenge } from "./challenge.js";
-import { createTrackers } from "./vision.js";
+import { NumberSmoother, readNumber } from "./fingers.js?v=19";
+import { Challenge } from "./challenge.js?v=19";
+import { createTrackers } from "./vision.js?v=19";
 import { fetchGallery, prepareGallery } from "./gallery.js?v=11";
 import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=11";
 import { recordPass } from "./attendance.js?v=23";
@@ -297,7 +297,7 @@ function tick() {
     againBtn.classList.remove("hidden");
   } else if (view.state === "challenge") {
     setPill("Reto");
-    headline.textContent = view.target != null ? `Muestra ${view.target}` : "Baja las manos";
+    headline.textContent = view.target != null ? `Muestra ${view.target}` : "Baja la mano";
     next.textContent = view.message;
     numberEl.textContent = view.target != null ? String(view.target) : String(gesture ?? "—");
     numberEl.classList.remove("hidden");
@@ -313,7 +313,7 @@ function tick() {
       ? "Estudiante detectado"
       : (hasFace ? "Estudiante no identificado" : "Esperando un rostro");
     next.textContent = ready
-      ? "Pulsa Iniciar prueba para los 3 números aleatorios."
+      ? "Pulsa Iniciar prueba: 3 números seguidos, con una sola mano (1 a 5)."
       : (hasFace
         ? "Mira de frente a la cámara."
         : "Pulsa Permitir cámara y ponte frente al teléfono.");

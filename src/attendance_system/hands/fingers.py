@@ -216,13 +216,12 @@ def read_number(
     finger_ratio: float = 1.08,
     thumb_ratio: float = 1.12,
 ) -> FingerReading:
-    counts = tuple(
-        count_extended_fingers(hand, finger_ratio=finger_ratio, thumb_ratio=thumb_ratio)
-        for hand in hands
-    )
-    total = int(sum(counts))
-    number = total if 1 <= total <= 10 else None
-    return FingerReading(per_hand=counts, total=total, number=number)
+    if not hands:
+        return FingerReading(per_hand=(), total=0, number=None)
+    chosen = min(hands, key=lambda hand: hand.landmarks[0][1] if hand.landmarks else 10_000)
+    count = count_extended_fingers(chosen, finger_ratio=finger_ratio, thumb_ratio=thumb_ratio)
+    number = count if 1 <= count <= 5 else None
+    return FingerReading(per_hand=(count,), total=count, number=number)
 
 
 class NumberSmoother:

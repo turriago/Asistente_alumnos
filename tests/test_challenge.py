@@ -12,20 +12,20 @@ def _settings(**overrides: object) -> ChallengeSettings:
         "timeout_seconds": 10.0,
         "cooldown_seconds": 4.0,
         "min_number": 1,
-        "max_number": 10,
+        "max_number": 5,
     }
     values.update(overrides)
     return ChallengeSettings(**values)  # type: ignore[arg-type]
 
 
-def test_sequence_has_three_and_never_repeats_neighbors() -> None:
+def test_sequence_is_three_consecutive_one_hand() -> None:
     manager = ChallengeManager(_settings(), rng=random.Random(0))
     for _ in range(40):
         sequence = manager.make_sequence()
         assert len(sequence) == 3
-        assert all(1 <= n <= 10 for n in sequence)
-        assert sequence[0] != sequence[1]
-        assert sequence[1] != sequence[2]
+        assert all(1 <= n <= 5 for n in sequence)
+        assert sequence[1] == sequence[0] + 1
+        assert sequence[2] == sequence[1] + 1
 
 
 def test_stays_idle_until_button_start() -> None:

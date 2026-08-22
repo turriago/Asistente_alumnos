@@ -53,7 +53,7 @@ def _status_lines(
         estado = "ESTIRA LOS DEDOS  (1–10)"
     lines = [
         f"Estado: {estado}",
-        "1–5 una mano. 6–10 las dos. Sin desafío todavía.",
+        "1–5 con una mano. 3 números seguidos.",
         f"Cámara index={info.index} {info.backend}   {info.width}x{info.height}   FPS {fps:.1f}",
         "Teclas: N cámara | B backend | Q salir",
     ]

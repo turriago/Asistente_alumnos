@@ -84,12 +84,14 @@ export function countFingers(landmarks, width, height) {
 }
 
 export function readNumber(hands, width, height) {
-  const counts = hands.map((hand) => countFingers(hand, width, height));
-  const total = counts.reduce((sum, n) => sum + n, 0);
+  const usable = (hands || []).filter((hand) => hand && hand.length >= 21);
+  if (!usable.length) return { counts: [], total: 0, number: null };
+  const chosen = usable.slice().sort((a, b) => (a[0]?.y ?? 1) - (b[0]?.y ?? 1))[0];
+  const n = countFingers(chosen, width, height);
   return {
-    counts,
-    total,
-    number: total >= 1 && total <= 10 ? total : null,
+    counts: [n],
+    total: n,
+    number: n >= 1 && n <= 5 ? n : null,
   };
 }
 

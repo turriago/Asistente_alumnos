@@ -3,28 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Entrada de la profesora</title>
-  <link rel="stylesheet" href="css/app.css?v=17">
+  <title>QR de la clase</title>
+  <meta http-equiv="refresh" content="0; url=profe.html">
+  <script>location.replace("profe.html");</script>
 </head>
 <body>
-  <div class="wrap">
-    <p class="eyebrow">Profesora</p>
-    <h1>Entrar para activar el QR</h1>
-    <p class="muted">Solo la profesora puede abrir el código y el listado. El estudiante entra con el QR, sin esta clave.</p>
-    <section class="panel">
-      <p id="pill" class="pill">Acceso</p>
-      <form id="login-form">
-        <label for="user">Usuario</label>
-        <input id="user" type="text" autocomplete="username" required>
-        <label for="password">Clave</label>
-        <input id="password" type="password" autocomplete="current-password" required>
-        <p id="error" class="note warn hidden">Usuario o clave incorrectos.</p>
-        <p class="actions">
-          <button type="submit">Entrar</button>
-        </p>
-      </form>
-    </section>
-  </div>
-  <script type="module" src="js/login.js"></script>
+  <p><a href="profe.html">Activar QR</a></p>
 </body>
 </html>

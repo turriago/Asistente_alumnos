@@ -1,4 +1,4 @@
-"""Reto de 3 números aleatorios seguidos. Una foto fija no puede cambiar el gesto."""
+"""Reto de 3 números consecutivos con una sola mano. Una foto fija no puede cambiar el gesto."""
 
 from __future__ import annotations
 
@@ -56,16 +56,12 @@ class ChallengeManager:
         self._cooldown_until = 0.0
 
     def make_sequence(self) -> tuple[int, ...]:
-        numbers: list[int] = []
+        length = self.settings.sequence_length
         low = self.settings.min_number
         high = self.settings.max_number
-        length = self.settings.sequence_length
-        for _ in range(length):
-            choices = [n for n in range(low, high + 1) if not numbers or n != numbers[-1]]
-            if not choices:
-                choices = list(range(low, high + 1))
-            numbers.append(self._rng.choice(choices))
-        return tuple(numbers)
+        max_start = high - length + 1
+        start = self._rng.randint(low, max(low, max_start))
+        return tuple(start + offset for offset in range(length))
 
     def request_start(self, *, now: float, student_id: str) -> bool:
         if self._phase in {"challenge", "success"}:
@@ -200,11 +196,11 @@ class ChallengeManager:
             return "Tiempo agotado. Espera un momento y pulsa Iniciar prueba otra vez."
         if self._waiting_release:
             done = self._index
-            return f"Bien ({done}/{total}). Baja las manos para el siguiente número."
+            return f"Bien ({done}/{total}). Baja la mano para el siguiente número."
         if target is None:
-            return "Prepara las manos."
+            return "Prepara la mano."
         seconds = max(1, int(remaining))
         return (
-            f"Muestra {target} con los dedos ({self._index + 1}/{total}). "
+            f"Muestra {target} con una mano ({self._index + 1}/{total}). "
             f"Te quedan {seconds}s. Una foto no sirve: hay que cambiar el gesto."
         )

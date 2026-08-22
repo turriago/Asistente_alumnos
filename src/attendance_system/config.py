@@ -330,7 +330,7 @@ def load_config(explicit_path: str | Path | None = None) -> AppConfig:
             8.0,
         ),
         min_number=_as_int(challenge_raw.get("min_number"), 1),
-        max_number=_as_int(challenge_raw.get("max_number"), 10),
+        max_number=_as_int(challenge_raw.get("max_number"), 5),
     )
     if challenge.sequence_length < 2:
         raise ConfigError("challenge.sequence_length debe ser al menos 2.")

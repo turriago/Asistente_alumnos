@@ -10,7 +10,7 @@ from attendance_system.face.types import DetectedFace
 from attendance_system.hands.types import DetectedHand
 
 NEXT_STEP_PLACEHOLDER = (
-    "Ponte más cerca que el resto. Acerca TUS palmas: 1–5 una mano, 6–10 las dos. "
+    "Ponte más cerca. Una mano al celular y la otra a la cámara: números del 1 al 5. "
     "Las manos de quien pasa no cuentan."
 )
 
@@ -28,7 +28,7 @@ def next_step_message(
     if hands_error:
         return f"DEBUG manos: no disponibles. {hands_error}"
     if identified:
-        return "Pulsa Iniciar prueba para los 3 números aleatorios."
+        return "Pulsa Iniciar prueba: 3 números seguidos, con una sola mano (1 a 5)."
     if gesture_number is not None:
         return f"Número leído: {gesture_number}."
     if not hands:

@@ -56,7 +56,7 @@ def test_draw_hands_changes_pixels() -> None:
 
 
 def test_next_step_shows_number() -> None:
-    assert "palmas" in next_step_message([])
+    assert "Una mano" in next_step_message([])
     assert next_step_message([]) == NEXT_STEP_PLACEHOLDER
     one = DetectedHand(landmarks=((1, 1),), handedness="Right", score=0.9)
     assert "Dedos" in next_step_message([one])
@@ -121,12 +121,15 @@ def test_counts_index_only_as_one() -> None:
     assert read_number([hand]).number == 1
 
 
-def test_two_hands_make_seven() -> None:
+def test_uses_the_raised_hand_only() -> None:
     five = _hand(thumb=True, index=True, middle=True, ring=True, pinky=True)
     two = _hand(thumb=False, index=True, middle=True, ring=False, pinky=False)
-    reading = read_number([five, two])
-    assert reading.total == 7
-    assert reading.number == 7
+    raised = list(five.landmarks)
+    raised[0] = (100, 40)
+    five = DetectedHand(landmarks=tuple(raised), handedness="Right", score=0.95)
+    reading = read_number([two, five])
+    assert reading.total == 5
+    assert reading.number == 5
 
 
 def test_peace_sign_is_two_not_three() -> None:

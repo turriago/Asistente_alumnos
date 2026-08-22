@@ -10,15 +10,9 @@ export class Challenge {
   }
 
   makeSequence() {
-    const numbers = [];
-    for (let i = 0; i < 3; i += 1) {
-      const choices = [];
-      for (let n = 1; n <= 10; n += 1) {
-        if (!numbers.length || n !== numbers[numbers.length - 1]) choices.push(n);
-      }
-      numbers.push(choices[Math.floor(Math.random() * choices.length)]);
-    }
-    return numbers;
+    const starts = [1, 2, 3];
+    const start = starts[Math.floor(Math.random() * starts.length)];
+    return [start, start + 1, start + 2];
   }
 
   start(now) {
@@ -85,10 +79,10 @@ export class Challenge {
     if (this.state === "success") message = "Su prueba fue exitosa.";
     else if (this.state === "failed") message = "Tiempo agotado. Pulsa Nueva prueba.";
     else if (this.state === "challenge" && this.waitingRelease) {
-      message = `Bien (${this.index}/${total}). Baja las manos para el siguiente número.`;
+      message = `Bien (${this.index}/${total}). Baja la mano para el siguiente número.`;
     } else if (this.state === "challenge" && this.target != null) {
       const seconds = Math.max(1, Math.ceil(remaining / 1000));
-      message = `Muestra ${this.target} con los dedos (${this.index + 1}/${total}). Te quedan ${seconds}s.`;
+      message = `Muestra ${this.target} con una mano (${this.index + 1}/${total}). Te quedan ${seconds}s.`;
     }
     return {
       state: this.state,

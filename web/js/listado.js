@@ -9,10 +9,7 @@ import {
   formatColombiaTime,
 } from "./attendance.js?v=23";
 import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
-import { logoutProfessor, requireProfessor } from "./auth.js";
 import { isQrRunning } from "./qr-session.js";
-
-if (!requireProfessor()) throw new Error("login");
 
 const DEFAULT_CODE = "aula1";
 const input = document.getElementById("class-code");
@@ -304,4 +301,3 @@ tickClock();
 load();
 setInterval(load, 3000);
 setInterval(tickClock, 1000);
-document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());
