@@ -7,8 +7,7 @@ import {
   formatColombiaClock,
   formatColombiaDate,
   formatColombiaTime,
-  isDayArchived,
-} from "./attendance.js?v=22";
+} from "./attendance.js?v=23";
 import { daySheets, dayWorkbook, downloadWorkbook, shareWorkbook, universityWorkbook } from "./excel.js";
 import { logoutProfessor, requireProfessor } from "./auth.js";
 import { isQrRunning } from "./qr-session.js";
@@ -42,7 +41,6 @@ const zoomName = document.getElementById("photo-zoom-name");
 const zoomClose = document.getElementById("photo-zoom-close");
 const clockEl = document.getElementById("colombia-clock");
 const qrLinks = document.querySelectorAll(".qr-nav");
-const archiveBanner = document.getElementById("archive-banner");
 const presentHeading = document.getElementById("present-heading");
 const missingHeading = document.getElementById("missing-heading");
 
@@ -51,11 +49,7 @@ input.value = localStorage.getItem("classCode") || DEFAULT_CODE;
 let currentSession = null;
 let currentPresent = [];
 let currentMissing = [];
-let currentAllPresent = [];
-let currentAllMissing = [];
 let currentStudents = [];
-let dayArchived = false;
-let afternoonLive = false;
 
 function classCode() {
   return (input.value || DEFAULT_CODE).trim() || DEFAULT_CODE;
@@ -110,7 +104,7 @@ function closeZoom() {
 
 function renderPreview() {
   if (!currentSession) return;
-  const sheets = daySheets(currentSession, currentAllPresent, currentAllMissing);
+  const sheets = daySheets(currentSession, currentPresent, currentMissing);
   previewBody.replaceChildren();
   for (const [title, rows] of sheets) {
     const heading = document.createElement("h3");
@@ -147,12 +141,7 @@ function fillSessionSelect(sessions, selectedDate) {
     option.textContent =
       formatColombiaDate(session.session_date) +
       " · " +
-      formatColombiaTime(session.started_at) +
-      (isDayArchived(session.session_date)
-        ? session.session_date === today
-          ? " · mañana archivada"
-          : " · archivado"
-        : "");
+      formatColombiaTime(session.started_at);
     sessionSelect.append(option);
   }
   const wanted = selectedDate || today;
@@ -174,20 +163,15 @@ async function load() {
     const roster = await fetchRoster(code, currentSession);
     currentPresent = roster.present;
     currentMissing = roster.missing;
-    currentAllPresent = roster.allPresent || roster.present;
-    currentAllMissing = roster.allMissing || roster.missing;
     currentStudents = roster.students;
-    dayArchived = Boolean(roster.archived);
-    afternoonLive = Boolean(roster.afternoonLive);
-    const livePresent = afternoonLive ? currentPresent.length : dayArchived ? 0 : currentPresent.length;
-    const total = currentAllPresent.length + currentAllMissing.length;
-    const labelPresent = document.getElementById("label-present");
-    const labelMissing = document.getElementById("label-missing");
-    document.getElementById("count-present").textContent = String(livePresent);
+    const total = currentPresent.length + currentMissing.length;
+    document.getElementById("count-present").textContent = String(currentPresent.length);
     document.getElementById("count-missing").textContent = String(currentMissing.length);
     document.getElementById("count-total").textContent = String(currentStudents.length || total);
+    const labelPresent = document.getElementById("label-present");
+    const labelMissing = document.getElementById("label-missing");
     if (labelPresent) labelPresent.textContent = "En curso";
-    if (labelMissing) labelMissing.textContent = afternoonLive || dayArchived ? "Faltaron" : "No fueron";
+    if (labelMissing) labelMissing.textContent = "No fueron";
     statsEl.hidden = !roster.open;
     summaryEl.hidden = !roster.open;
     presentList.replaceChildren();
@@ -197,7 +181,6 @@ async function load() {
       downloadDayBtn.disabled = true;
       shareDayBtn.disabled = true;
       previewBtn.disabled = true;
-      archiveBanner.classList.add("hidden");
       sessionMeta.textContent = "Hoy todavía no se activó el QR. Ábrelo para registrar fecha y hora de esta clase.";
       summaryEl.hidden = true;
       presentEmpty.hidden = false;
@@ -213,47 +196,16 @@ async function load() {
       formatColombiaDate(currentSession.session_date) +
       " · QR activado a las " +
       formatColombiaTime(currentSession.started_at);
-    presentHeading.textContent = afternoonLive
-      ? "En curso · tarde"
-      : dayArchived
-        ? "Archivo · presentes"
-        : "Presentes";
-    missingHeading.textContent = afternoonLive
-      ? "Aún no han venido hoy"
-      : dayArchived
-        ? "Archivo · no asistieron"
-        : "No asistieron";
-    if (dayArchived) {
-      const morningCount = (roster.morningPresent || []).length;
-      const morningMissingCount = (roster.morningMissing || []).length;
-      archiveBanner.classList.remove("hidden");
-      archiveBanner.textContent = afternoonLive
-        ? "Archivo de la mañana: " +
-          morningCount +
-          " fueron y " +
-          morningMissingCount +
-          " faltaron. El en curso de abajo es la tarde."
-        : "En curso: 0 presentes. Día archivado a las 12:00 p. m. hora Colombia · " +
-          currentAllPresent.length +
-          " fueron y " +
-          currentAllMissing.length +
-          " faltaron.";
-      summaryEl.textContent = afternoonLive
-        ? "Puedes seguir tomando asistencia con el QR. La mañana no se borra."
-        : "El listado de abajo es el archivo de ese día.";
-      livePill.textContent = afternoonLive ? "Tarde en vivo" : "Archivado";
-      livePill.className = afternoonLive ? "pill ok" : "pill";
+    if (presentHeading) presentHeading.textContent = "Presentes";
+    if (missingHeading) missingHeading.textContent = "No asistieron";
+    if (total) {
+      summaryEl.textContent =
+        `${currentPresent.length} de ${total} fueron. Faltaron ${currentMissing.length}.`;
     } else {
-      archiveBanner.classList.add("hidden");
-      if (total) {
-        summaryEl.textContent =
-          `${currentPresent.length} de ${total} fueron. Faltaron ${currentMissing.length}.`;
-      } else {
-        summaryEl.textContent = "La clase está abierta. Aún nadie ha pasado la prueba.";
-      }
-      livePill.textContent = "En vivo";
-      livePill.className = "pill ok";
+      summaryEl.textContent = "La clase está abierta. Aún nadie ha pasado la prueba.";
     }
+    livePill.textContent = "En vivo";
+    livePill.className = "pill ok";
     presentEmpty.hidden = currentPresent.length > 0;
     missingEmpty.hidden = currentMissing.length > 0;
     if (!total) {
@@ -276,11 +228,7 @@ async function load() {
     downloadDayBtn.disabled = false;
     shareDayBtn.disabled = false;
     previewBtn.disabled = false;
-    statusEl.textContent = afternoonLive
-      ? "Clase " + code + " · tarde en vivo, se actualiza sola cada 3 segundos."
-      : dayArchived
-        ? "Clase " + code + " · archivada a las 12:00 p. m. hora Colombia."
-        : "Clase " + code + " · se actualiza sola cada 3 segundos.";
+    statusEl.textContent = "Clase " + code + " · se actualiza sola cada 3 segundos.";
     if (!previewPanel.classList.contains("hidden")) renderPreview();
   } catch (err) {
     livePill.textContent = "Sin conexión";
@@ -302,13 +250,13 @@ function safeDownload(factory) {
 
 downloadDayBtn.addEventListener("click", () => {
   if (!currentSession) return;
-  safeDownload(() => dayWorkbook(currentSession, currentAllPresent, currentAllMissing));
+  safeDownload(() => dayWorkbook(currentSession, currentPresent, currentMissing));
 });
 
 shareDayBtn.addEventListener("click", async () => {
   if (!currentSession) return;
   try {
-    const file = dayWorkbook(currentSession, currentAllPresent, currentAllMissing);
+    const file = dayWorkbook(currentSession, currentPresent, currentMissing);
     const shared = await shareWorkbook(file, "Asistencia " + currentSession.session_date);
     if (!shared) statusEl.textContent = "Este aparato no comparte archivos. Se descargó el Excel.";
   } catch (err) {
@@ -324,7 +272,7 @@ downloadUniversityBtn.addEventListener("click", () => {
 previewBtn.addEventListener("click", renderPreview);
 previewDownload.addEventListener("click", () => {
   if (!currentSession) return;
-  safeDownload(() => dayWorkbook(currentSession, currentAllPresent, currentAllMissing));
+  safeDownload(() => dayWorkbook(currentSession, currentPresent, currentMissing));
 });
 previewClose.addEventListener("click", () => previewPanel.classList.add("hidden"));
 zoomClose.addEventListener("click", closeZoom);
@@ -351,8 +299,6 @@ function refreshQrLink() {
 function tickClock() {
   if (clockEl) clockEl.textContent = "Hora Colombia: " + formatColombiaClock();
   refreshQrLink();
-  const closed = currentSession && isDayArchived(currentSession.session_date);
-  if (closed && !dayArchived) load();
 }
 tickClock();
 load();

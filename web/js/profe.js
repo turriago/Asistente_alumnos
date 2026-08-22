@@ -7,9 +7,7 @@ import {
   formatColombiaClock,
   formatColombiaDate,
   formatColombiaTime,
-  isDayArchived,
-  qrCapMs,
-} from "./attendance.js?v=22";
+} from "./attendance.js?v=23";
 import { clearQrLive, loadQrLive, saveQrLive } from "./qr-session.js";
 
 if (!requireProfessor()) throw new Error("login");
@@ -251,7 +249,7 @@ activateBtn.addEventListener("click", async () => {
     return;
   }
   activatedAt = new Date();
-  expiresAt = Math.min(Date.now() + minutes() * 60 * 1000, qrCapMs(colombiaToday()));
+  expiresAt = Date.now() + minutes() * 60 * 1000;
   active = true;
   applyLiveUi();
   persistLive();
@@ -307,10 +305,5 @@ window.addEventListener("resize", () => {
 
 await detectLan();
 await restoreLive();
-if (!active && isDayArchived(colombiaToday())) {
-  statePill.textContent = "Tarde · puedes activar el QR";
-  statePill.className = "pill ok";
-  sessionMeta.textContent = "La mañana ya quedó archivada. Activa el QR para tomar asistencia de la tarde.";
-}
 setInterval(render, 250);
 document.getElementById("logout")?.addEventListener("click", () => logoutProfessor());

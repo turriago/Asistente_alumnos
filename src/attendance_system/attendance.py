@@ -36,31 +36,6 @@ def colombia_today(now: datetime | None = None) -> str:
     return stamp.astimezone(BOGOTA).date().isoformat()
 
 
-def noon_on(session_date: str) -> datetime:
-    year, month, day = (int(part) for part in session_date.split("-"))
-    return datetime(year, month, day, 12, 0, 0, tzinfo=BOGOTA)
-
-
-def is_day_archived(session_date: str, now: datetime | None = None) -> bool:
-    stamp = now or datetime.now(BOGOTA)
-    if stamp.tzinfo is None:
-        stamp = stamp.replace(tzinfo=BOGOTA)
-    return stamp.astimezone(BOGOTA) >= noon_on(session_date)
-
-
-def passes_before_noon(passes: list[dict[str, Any]], session_date: str) -> list[dict[str, Any]]:
-    cutoff = noon_on(session_date)
-    kept: list[dict[str, Any]] = []
-    for row in passes:
-        raw = str(row.get("passed_at") or "")
-        if not raw:
-            continue
-        stamp = datetime.fromisoformat(raw.replace("Z", "+00:00")).astimezone(BOGOTA)
-        if stamp < cutoff:
-            kept.append(row)
-    return kept
-
-
 def format_colombia_time(iso: str | None) -> str:
     if not iso:
         return ""

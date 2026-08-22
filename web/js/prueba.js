@@ -4,7 +4,7 @@ import { Challenge } from "./challenge.js";
 import { createTrackers } from "./vision.js";
 import { fetchGallery, prepareGallery } from "./gallery.js?v=11";
 import { buildDescriptors, loadFaceApi, matchVideo } from "./recognize.js?v=11";
-import { recordPass } from "./attendance.js?v=22";
+import { recordPass } from "./attendance.js?v=23";
 
 const pill = document.getElementById("pill");
 const headline = document.getElementById("headline");

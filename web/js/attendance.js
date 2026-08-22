@@ -35,42 +35,6 @@ export function formatColombiaClock(now = new Date()) {
   });
 }
 
-export function noonMs(sessionDate) {
-  const day = sessionDate || colombiaToday();
-  return new Date(day + "T12:00:00-05:00").getTime();
-}
-
-export function endOfDayMs(sessionDate) {
-  const day = sessionDate || colombiaToday();
-  return new Date(day + "T00:00:00-05:00").getTime() + 24 * 60 * 60 * 1000;
-}
-
-export function qrCapMs(sessionDate, now = Date.now()) {
-  const day = sessionDate || colombiaToday(new Date(now));
-  return now < noonMs(day) ? noonMs(day) : endOfDayMs(day);
-}
-
-export function isDayArchived(sessionDate, now = Date.now()) {
-  const day = sessionDate || colombiaToday(new Date(now));
-  return now >= noonMs(day);
-}
-
-export function passesBeforeNoon(passes, sessionDate) {
-  const cutoff = noonMs(sessionDate);
-  return (passes || []).filter((row) => {
-    const stamp = new Date(row.passed_at).getTime();
-    return Number.isFinite(stamp) && stamp < cutoff;
-  });
-}
-
-export function passesFromNoon(passes, sessionDate) {
-  const cutoff = noonMs(sessionDate);
-  return (passes || []).filter((row) => {
-    const stamp = new Date(row.passed_at).getTime();
-    return Number.isFinite(stamp) && stamp >= cutoff;
-  });
-}
-
 export function formatColombiaTime(iso) {
   if (!iso) return "";
   const date = new Date(iso);
@@ -226,27 +190,8 @@ export async function fetchRoster(classCode, session) {
     await fetch(passesUrl, { cache: "no-store", headers: headers() }),
     "No se pudo leer la asistencia.",
   );
-  const archived = isDayArchived(session.session_date);
-  const today = colombiaToday();
-  const afternoonLive = archived && session.session_date === today;
-  const all = passes || [];
-  const morningPasses = passesBeforeNoon(all, session.session_date);
-  const afternoonPasses = passesFromNoon(all, session.session_date);
-  const allSplit = splitRoster(students || [], all);
-  const morning = splitRoster(students || [], morningPasses);
-  const live = splitRoster(students || [], afternoonLive ? afternoonPasses : all);
-  return {
-    present: live.present,
-    missing: afternoonLive ? allSplit.missing : live.missing,
-    morningPresent: morning.present,
-    morningMissing: morning.missing,
-    allPresent: allSplit.present,
-    allMissing: allSplit.missing,
-    students: students || [],
-    open: true,
-    archived,
-    afternoonLive,
-  };
+  const split = splitRoster(students || [], passes || []);
+  return { ...split, students: students || [], open: true };
 }
 
 export function cardUrl(student) {

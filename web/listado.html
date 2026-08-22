@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Listado de asistencia</title>
-  <link rel="stylesheet" href="css/app.css?v=20">
+  <link rel="stylesheet" href="css/app.css?v=21">
 </head>
 <body class="page-listado">
   <div class="wrap roster">
     <p class="eyebrow">Profesora · una clase por semana</p>
     <h1>Asistencia del día</h1>
-    <p class="muted">Cada pase queda en la base de datos. A las 12:00 p. m. hora Colombia se archiva la mañana y el en curso vuelve a 0. Después puedes activar el QR otra vez para la tarde.</p>
+    <p class="muted">Cada pase queda en la base de datos. Elige un día abajo para ver quiénes fueron y quiénes faltaron.</p>
     <p id="colombia-clock" class="colombia-clock">Hora Colombia: —</p>
     <p class="actions">
       <a class="btn qr-nav" href="profe.html">Activar QR</a>
@@ -24,9 +24,9 @@
         <input id="class-code" type="text" maxlength="32" autocomplete="off" aria-label="Código de clase">
         <button id="refresh" type="button" class="secondary">Actualizar</button>
       </div>
-      <label for="session-date">Días guardados (archivo)</label>
+      <label for="session-date">Día de clase</label>
       <select id="session-date"></select>
-      <p class="muted">Los archivados no se borran. Ábrelos aquí para ver quiénes fueron y quiénes faltaron.</p>
+      <p class="muted">Los días anteriores no se borran. Ábrelos aquí para ver la asistencia de esa clase.</p>
       <p id="session-meta" class="roster-session">Cargando…</p>
       <p id="status" class="muted"></p>
     </section>
@@ -46,7 +46,6 @@
       </article>
     </section>
     <p id="summary" class="roster-summary" hidden></p>
-    <p id="archive-banner" class="archive-banner hidden">En curso: 0 presentes. El día se archivó a las 12:00 p. m. hora Colombia.</p>
 
     <p class="actions export-actions">
       <button id="preview-day" type="button">Ver Excel antes de descargar</button>
@@ -85,6 +84,6 @@
     <p id="photo-zoom-name"></p>
     <button id="photo-zoom-close" type="button" class="secondary">Cerrar</button>
   </div>
-  <script type="module" src="js/listado.js?v=22"></script>
+  <script type="module" src="js/listado.js?v=23"></script>
 </body>
 </html>
